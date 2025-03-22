@@ -1,6 +1,7 @@
 from typing import Optional, List
 from fonny.ports.communication_port import CommunicationPort
 from fonny.ports.archivist_port import ArchivistPort
+from fonny.adapters.serial_adapter import SerialAdapter
 
 
 class ForthRepl:
@@ -9,14 +10,14 @@ class ForthRepl:
     This class uses a CommunicationPort to send commands and receive responses.
     """
     
-    def __init__(self, communication_port: CommunicationPort):
+    def __init__(self, communication_port: Optional[CommunicationPort] = None):
         """
         Initialize the REPL with a communication port.
         
         Args:
             communication_port: The port to use for communication with the FORTH system
         """
-        self._comm_port = communication_port
+        self._comm_port = communication_port or SerialAdapter()
         self._archivists: List[ArchivistPort] = []
     
     def start(self) -> bool:
