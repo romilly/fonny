@@ -141,3 +141,5 @@ test/test/data/generated
 
 Link.md
 
+# SQLite database files
+**/*.db
