@@ -1,3 +1,13 @@
+"""
+Helper functions for testing guizero applications.
+
+This module provides utilities to interact with guizero components in tests:
+- push(): Simulate button clicks
+- type_in(): Enter text into TextBox components
+
+These functions access the underlying Tkinter widgets to simulate user interactions,
+allowing for automated testing of guizero applications.
+"""
 from guizero import PushButton, TextBox
 
 

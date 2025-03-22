@@ -1,3 +1,19 @@
+"""
+End-to-end tests for the Fonny GUI with a real Raspberry Pi Pico.
+
+These tests verify that the GUI can:
+1. Connect to a Pico running FORTH
+2. Send commands and receive responses
+3. Handle errors appropriately
+
+Requirements:
+- A Raspberry Pi Pico connected to the computer
+- The Pico must be running a FORTH system
+- The default serial port is /dev/ttyACM0 (can be changed in the GUI)
+
+The tests use the helper functions in tests/helpers/tk_testing.py to interact
+with the guizero components.
+"""
 import time
 import unittest
 

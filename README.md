@@ -84,6 +84,30 @@ Run the tests using pytest:
 python -m pytest
 ```
 
+#### End-to-End Tests
+
+The project includes end-to-end tests that verify the GUI functionality with an actual Raspberry Pi Pico running FORTH. These tests:
+
+1. Connect to the Pico
+2. Send FORTH commands
+3. Verify responses
+4. Test error handling
+
+To run the end-to-end tests specifically:
+```
+python -m pytest tests/e2e/test_forth_gui.py -v
+```
+
+Note: End-to-end tests require a Raspberry Pi Pico connected to your computer and running a FORTH system.
+
+#### Test Helpers
+
+The `tests/helpers` directory contains utilities to assist with testing:
+
+- `tk_testing.py`: Functions for interacting with guizero components in tests
+  - `push()`: Simulate button clicks
+  - `type_in()`: Enter text into TextBox components
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
