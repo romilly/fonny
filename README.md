@@ -18,21 +18,24 @@ Fonny follows a hexagonal architecture pattern, which allows for easy testing an
 - **Core**: Contains the main business logic, including the REPL (Read-Eval-Print Loop)
 - **Ports**: Define interfaces for external interactions (communication, archiving)
 - **Adapters**: Implement the port interfaces for specific technologies (serial communication, SQLite)
+- **GUI**: Provides a graphical user interface using guizero
 
 This architecture makes it easy to mock components for testing and to swap out implementations as needed.
 
 ## Current Status
 
-The project is currently in early development with the following components implemented:
+The project is currently in active development with the following components implemented:
 
 - **CommunicationPort**: Interface for communicating with FORTH systems
 - **SerialAdapter**: Implementation of CommunicationPort for serial communication
 - **ArchivistPort**: Interface for recording events (commands, responses, errors)
 - **SQLiteArchivist**: Implementation of ArchivistPort that stores events in an SQLite database
 - **ForthRepl**: Core REPL for interacting with FORTH systems
+- **ForthGui**: Graphical user interface for interacting with the FORTH system
 
 Next steps include:
-- Implementing a GUI using guizero
+- Adding command history to the GUI
+- Implementing syntax highlighting for FORTH commands
 - Adding more advanced debugging features
 - Enhancing the archiving and analysis capabilities
 
@@ -43,6 +46,7 @@ Next steps include:
 - Python 3.10 or higher
 - A virtual environment (recommended)
 - A Raspberry Pi Pico running FORTH (for actual usage)
+- guizero package for the GUI
 
 ### Installation
 
@@ -56,6 +60,22 @@ Next steps include:
    ```
    pip install -r requirements.txt
    ```
+
+### Running the GUI
+
+To run the Fonny GUI application:
+
+```bash
+cd /path/to/fonny
+source venv/bin/activate
+cd src
+python -m fonny.run_gui
+```
+
+The GUI provides:
+- Connection controls to connect to your FORTH system
+- Command input for sending FORTH commands
+- Output display for viewing responses and errors
 
 ### Running Tests
 
