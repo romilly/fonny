@@ -143,3 +143,6 @@ Link.md
 
 # SQLite database files
 **/*.db
+
+# Symlink to spear-gpt repository
+spear-gpt-ref
