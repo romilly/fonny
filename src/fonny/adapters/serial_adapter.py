@@ -15,16 +15,16 @@ class SerialAdapter(CommunicationPort):
     Implements the CommunicationPort interface.
     """
     
-    def __init__(self, port: str = '/dev/ttyACM0', baud_rate: int = 115200, timeout: int = 1, 
-                 character_handler: Optional[CharacterHandlerPort] = None):
+    def __init__(self, character_handler: CharacterHandlerPort, port: str = '/dev/ttyACM0', 
+                 baud_rate: int = 115200, timeout: int = 1):
         """
         Initialize the serial adapter.
         
         Args:
+            character_handler: Handler for processing characters as they arrive
             port: Serial port path
             baud_rate: Baud rate for serial communication
             timeout: Timeout in seconds for serial operations
-            character_handler: Handler for processing characters as they arrive
         """
         self._port = port
         self._baud_rate = baud_rate
@@ -42,6 +42,7 @@ class SerialAdapter(CommunicationPort):
             bool: True if connection was successful, False otherwise
         """
         try:
+            print(f"Attempting to connect to {self._port} at {self._baud_rate} baud")
             self._serial = serial.Serial(
                 port=self._port,
                 baudrate=self._baud_rate,
@@ -49,24 +50,25 @@ class SerialAdapter(CommunicationPort):
             )
             
             # Start the reading thread if we have a character handler
-            if self._character_handler:
-                self._start_reading_thread()
+            self._start_reading_thread()
                 
             return True
         except SerialException as e:
-            print(f"Error opening serial port: {e}")
+            print(f"Connection failed: {e}")
             return False
     
     def disconnect(self) -> None:
         """
         Disconnect from the FORTH system.
         """
-        # Stop the reading thread if it's running
-        if self._read_thread and self._read_thread.is_alive():
+        if self.is_connected():
+            # Stop the reading thread
             self._stop_reading.set()
-            self._read_thread.join(timeout=1.0)
-        
-        if self._serial and self._serial.is_open:
+            if self._read_thread:
+                self._read_thread.join(timeout=1.0)
+                self._read_thread = None
+            
+            # Close the serial connection
             self._serial.close()
             self._serial = None
     
@@ -74,24 +76,38 @@ class SerialAdapter(CommunicationPort):
         """
         Start a background thread to read characters from the serial port.
         """
+        print("Starting character reading thread")
         self._stop_reading.clear()
         self._read_thread = threading.Thread(target=self._read_characters)
         self._read_thread.daemon = True
         self._read_thread.start()
+        print("Character reading thread started")
     
     def _read_characters(self) -> None:
         """
         Read characters from the serial port and pass them to the character handler.
         This method runs in a background thread.
         """
+        print("Reading thread started, waiting for characters...")
         while not self._stop_reading.is_set() and self.is_connected():
-            if self._serial.in_waiting > 0:
-                char = self._serial.read(1).decode('utf-8', errors='replace')
-                if self._character_handler:
-                    self._character_handler.handle_character(char)
-            else:
-                # Short sleep to prevent high CPU usage
-                time.sleep(0.01)
+            try:
+                if self._serial.in_waiting > 0:
+                    raw_data = self._serial.read(1)
+                    char = raw_data.decode('utf-8', errors='replace')
+                    ascii_val = ord(char) if len(char) > 0 else -1
+                    print(f"Read character: {repr(char)} (ASCII: {ascii_val}, Hex: {raw_data.hex()})")
+                    if self._character_handler:
+                        print(f"Passing character to handler: {repr(char)}")
+                        self._character_handler.handle_character(char)
+                    else:
+                        print("No character handler available")
+                else:
+                    # Short sleep to prevent high CPU usage
+                    time.sleep(0.01)
+            except Exception as e:
+                print(f"Error in reading thread: {e}")
+                time.sleep(0.1)  # Sleep a bit longer on error
+        print("Reading thread stopped")
     
     def send_command(self, command: str) -> None:
         """
@@ -103,7 +119,9 @@ class SerialAdapter(CommunicationPort):
         if not self.is_connected():
             raise ConnectionError("Not connected to FORTH system")
         
+        print(f"Sending command: {repr(command)}")
         self._serial.write(command.encode())
+        print(f"Command sent: {repr(command)}")
     
     def receive_response(self) -> Optional[str]:
         """
@@ -120,13 +138,9 @@ class SerialAdapter(CommunicationPort):
         if not self.is_connected():
             raise ConnectionError("Not connected to FORTH system")
         
-        # Wait a bit for the device to respond
-        time.sleep(0.2)
-        
         if self._serial.in_waiting:
-            response = self._serial.readline().decode('utf-8', errors='replace').strip()
+            response = self._serial.readline().decode('utf-8', errors='replace')
             return response
-        
         return None
     
     def is_connected(self) -> bool:
@@ -137,3 +151,21 @@ class SerialAdapter(CommunicationPort):
             bool: True if connected, False otherwise
         """
         return self._serial is not None and self._serial.is_open
+        
+    def clear_buffer(self) -> None:
+        """
+        Clear any data in the serial buffer.
+        
+        This is useful to ensure we're starting with a clean state
+        before sending a new command.
+        """
+        if not self.is_connected():
+            raise ConnectionError("Not connected to FORTH system")
+            
+        print("Clearing serial buffer")
+        while self._serial.in_waiting > 0:
+            # Read and discard all available data
+            discarded = self._serial.read(self._serial.in_waiting)
+            print(f"Discarded {len(discarded)} bytes from buffer")
+            time.sleep(0.1)  # Short delay to allow more data to arrive if needed
+        print("Serial buffer cleared")

@@ -7,7 +7,7 @@ from fonny.adapters.serial_adapter import SerialAdapter
 from fonny.ports.character_handler_port import CharacterHandlerPort
 
 
-class TestCharacterHandler(CharacterHandlerPort):
+class _TestCharacterHandler(CharacterHandlerPort):
     """
     Test implementation of CharacterHandlerPort that collects characters
     for verification in tests.
@@ -54,7 +54,7 @@ class TestSerialAdapterIntegration:
         as they arrive, without waiting for a complete response.
         """
         # Create a character handler to process received characters
-        char_handler = TestCharacterHandler()
+        char_handler = _TestCharacterHandler()
         
         # Create the adapter with the character handler
         print("Creating SerialAdapter with character handler")
@@ -69,6 +69,9 @@ class TestSerialAdapterIntegration:
         print(f"Successfully connected to Pico")
         
         try:
+            # Clear any existing data in the buffer
+            adapter.clear_buffer()
+            
             # Send a command that should produce a multi-line response
             test_command = "words\n"
             print(f"Sending command: {repr(test_command)}")
