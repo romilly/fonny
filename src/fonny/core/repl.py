@@ -11,14 +11,14 @@ class ForthRepl(CharacterHandlerPort):
     This class uses a CommunicationPort to send commands and receive responses.
     """
     
-    def __init__(self, communication_port: Optional[CommunicationPort] = None):
+    def __init__(self):
         """
         Initialize the REPL with a communication port.
         
         Args:
             communication_port: The port to use for communication with the FORTH system
         """
-        self._comm_port = communication_port or NullCommunicationAdapter()
+        self._comm_port = NullCommunicationAdapter()
         self._archivists: List[ArchivistPort] = []
         self._current_response = ""
     
@@ -38,12 +38,14 @@ class ForthRepl(CharacterHandlerPort):
         Args:
             char: The character received
         """
-        self._current_response += char
-        
-        # If we have a complete line (newline character), process it
+        # If we have a complete line (newline or carriage return), process it
         if char == '\n' or char == '\r':
-            self._process_response(self._current_response)
-            self._current_response = ""
+            if self._current_response:  # Only process if we have content
+                self._process_response(self._current_response)
+                self._current_response = ""
+        else:
+            # Add the character to the current response
+            self._current_response += char
     
     def start(self) -> bool:
         """
@@ -52,11 +54,17 @@ class ForthRepl(CharacterHandlerPort):
         Returns:
             bool: True if connection was successful, False otherwise
         """
-        success = self._comm_port.connect()
-        if success:
+        try:
+            success = self._comm_port.connect()
+            if success:
+                for archivist in self._archivists:
+                    archivist.record_connection_opened()
+            return success
+        except Exception as e:
+            # Record the error in all archivists
             for archivist in self._archivists:
-                archivist.record_connection_opened()
-        return success
+                archivist.record_system_error(str(e))
+            return False
     
     def stop(self) -> None:
         """
