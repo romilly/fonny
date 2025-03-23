@@ -1,4 +1,5 @@
 from typing import Optional, List
+from queue import Queue
 from fonny.ports.communication_port import CommunicationPort
 from fonny.ports.archivist_port import ArchivistPort
 from fonny.adapters.null_adapter import NullCommunicationAdapter
@@ -21,6 +22,7 @@ class ForthRepl(CharacterHandlerPort):
         self._comm_port = NullCommunicationAdapter()
         self._archivists: List[ArchivistPort] = []
         self._current_response = ""
+        self.character_queue = Queue()
     
     def set_communication_port(self, communication_port: CommunicationPort) -> None:
         """
@@ -38,6 +40,7 @@ class ForthRepl(CharacterHandlerPort):
         Args:
             char: The character received
         """
+        self.character_queue.put(char)
         # If we have a complete line (newline or carriage return), process it
         if char == '\n' or char == '\r':
             if self._current_response:  # Only process if we have content

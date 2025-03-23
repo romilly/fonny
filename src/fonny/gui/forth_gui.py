@@ -1,6 +1,7 @@
 from guizero import App, Text, TextBox, PushButton, Box, TitleBox
 from fonny.core.repl import ForthRepl
 from fonny.ports.archivist_port import ArchivistPort, EventType
+from queue import Empty
 
 
 
@@ -24,30 +25,60 @@ class ForthGui(App):
         super().__init__(title=title, width=width, height=height, **kwargs)
         self._repl = repl
         
-        # Create a console archivist to capture responses
-        self._console_archivist = self._create_console_archivist()
-        self._repl.add_archivist(self._console_archivist)
+        # # Create a console archivist to capture responses
+        # self._console_archivist = self._create_console_archivist()
+        # self._repl.add_archivist(self._console_archivist)
         
         # Create the GUI components
         self._create_gui_components()
         
         # Set up event handler for when the app is closed
         self.when_closed = self.cleanup
+        
+        # Set up a repeating task to process the character queue
+        self.repeat(50, self._process_character_queue)  # Check every 50ms
+        
+        # Buffer for accumulating characters
+        self._char_buffer = ""
     
-    def _create_console_archivist(self):
-        """Create an archivist that updates the GUI with responses."""
+    def _process_character_queue(self):
+        """
+        Process characters from the queue on the main thread.
+        This avoids threading issues when updating the GUI.
+        """
         
-        class ConsoleArchivist(ArchivistPort):
-            def __init__(self, gui):
-                self._gui = gui
+        # Process all available characters in the queue
+        while self._repl.character_queue.qsize() > 0:
+            try:
+                char = self._repl.character_queue.get_nowait()
                 
-            def record_event(self, event_type, data, timestamp):
-                if event_type == EventType.SYSTEM_RESPONSE and "response" in data:
-                    self._gui.append_to_output(data["response"])
-                elif event_type == EventType.SYSTEM_ERROR and "error" in data:
-                    self._gui.append_to_output(f"Error: {data['error']}")
+                # Add the character to our buffer
+                self._char_buffer += char
+                
+                # If we have a newline or carriage return, update the display
+                if char == '\n' or char == '\r':
+                    if self._char_buffer.strip():  # Only append non-empty lines
+                        self._output.append(self._char_buffer)
+                    self._char_buffer = ""  # Reset the buffer
+                
+                self._repl.character_queue.task_done()
+            except Empty:
+                break  # No more items in queue
+    
+    # def _create_console_archivist(self):
+    #     """Create an archivist that updates the GUI with responses."""
         
-        return ConsoleArchivist(self)
+    #     class ConsoleArchivist(ArchivistPort):
+    #         def __init__(self, gui):
+    #             self._gui = gui
+                
+    #         def record_event(self, event_type, data, timestamp):
+    #             if event_type == EventType.SYSTEM_RESPONSE and "response" in data:
+    #                 self._gui.append_to_output(data["response"])
+    #             elif event_type == EventType.SYSTEM_ERROR and "error" in data:
+    #                 self._gui.append_to_output(f"Error: {data['error']}")
+        
+    #     return ConsoleArchivist(self)
     
     def _create_gui_components(self):
         """Create the GUI components."""
@@ -143,7 +174,9 @@ class ForthGui(App):
         """Clean up resources when the GUI is closed."""
         if self._repl._comm_port.is_connected():
             self._repl.stop()
-        self._repl.remove_archivist(self._console_archivist)
+        # Only remove the archivist if it exists
+        if hasattr(self, '_console_archivist'):
+            self._repl.remove_archivist(self._console_archivist)
         print("Application closed. Goodbye!")
         self.destroy()  # Properly close the application window
 
