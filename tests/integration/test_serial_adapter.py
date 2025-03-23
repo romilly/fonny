@@ -7,11 +7,11 @@ from fonny.adapters.serial_adapter import SerialAdapter
 from fonny.ports.character_handler_port import CharacterHandlerPort
 
 
-class TestCharacterHandler(CharacterHandlerPort):
-    """Test implementation of CharacterHandlerPort for integration testing."""
+class MockCharacterHandler(CharacterHandlerPort):
+    """Mock implementation of CharacterHandlerPort for integration testing."""
     
     def __init__(self):
-        """Initialize the test character handler."""
+        """Initialize the mock character handler."""
         self.received_chars = []
     
     def handle_character(self, char: str) -> None:
@@ -42,7 +42,7 @@ class TestSerialAdapter:
     def serial_adapter(self):
         """Create a SerialAdapter connected to a real Pico device."""
         # Create a character handler to receive responses
-        handler = TestCharacterHandler()
+        handler = MockCharacterHandler()
         
         # Create and connect the adapter
         adapter = SerialAdapter(
