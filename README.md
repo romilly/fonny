@@ -33,12 +33,6 @@ The project is currently in active development with the following components imp
 - **ForthRepl**: Core REPL for interacting with FORTH systems
 - **ForthGui**: Graphical user interface for interacting with the FORTH system
 
-Next steps include:
-- Adding command history to the GUI
-- Implementing syntax highlighting for FORTH commands
-- Adding more advanced debugging features
-- Enhancing the archiving and analysis capabilities
-
 ## Getting Started
 
 ### Prerequisites
@@ -78,6 +72,8 @@ The GUI provides:
 - Output display for viewing responses and errors
 
 ### Running Tests
+
+Test strategy is described in ![testing.md](docs/testing.md)
 
 Run the tests using pytest:
 ```
