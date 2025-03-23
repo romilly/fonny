@@ -19,6 +19,7 @@ import unittest
 
 from fonny.gui.forth_gui import ForthGui
 from fonny.core.repl import ForthRepl
+from fonny.adapters.serial_adapter import SerialAdapter
 from tests.helpers.tk_testing import push, type_in
 
 
@@ -29,17 +30,24 @@ class TestForthGui(unittest.TestCase):
     def setUpClass(cls):
         # Create a real ForthRepl instance
         cls.repl = ForthRepl()
+
+        # Create a SerialAdapter with the ForthRepl as the character handler
+        serial_adapter = SerialAdapter(character_handler=cls.repl)
+
+        # Set the SerialAdapter as the communication port for the ForthRepl
+
         # Create the GUI with the real repl
+        cls.repl.set_communication_port(serial_adapter)
         cls.gui = ForthGui(cls.repl, title="Fonny Test")
         # Allow GUI to initialize
         cls.gui.update()
-        
+
     @classmethod
     def tearDownClass(cls):
         # Clean up
         cls.gui.cleanup()
         # Don't call destroy() again as it's already called in cleanup()
-    
+
     def setUp(self):
         # Reset for each test
         self.gui.update()
@@ -113,13 +121,13 @@ class TestForthGui(unittest.TestCase):
         output_text = self.gui._output.value
         
         # Verify that the command is NOT shown with a ">" prefix (which would indicate manual display)
-        self.assertNotIn(f"> {test_command}", output_text, 
+        self.assertNotIn(f"> {test_command}", output_text,
                          "Command should not be manually displayed with '>' prefix")
         
         # Check for the complete expected output format
         # The FORTH system outputs the command, result, and 'ok' all on the same line
         expected_pattern = f"{test_command} 4  ok"
-        self.assertIn(expected_pattern, output_text, 
+        self.assertIn(expected_pattern, output_text,
                       f"Output should contain the complete pattern: '{expected_pattern}'")
 
 

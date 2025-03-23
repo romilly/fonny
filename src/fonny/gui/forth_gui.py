@@ -1,6 +1,5 @@
 from guizero import App, Text, TextBox, PushButton, Box, TitleBox
 from fonny.core.repl import ForthRepl
-from fonny.ports.archivist_port import ArchivistPort, EventType
 from queue import Empty
 
 
@@ -54,11 +53,15 @@ class ForthGui(App):
                 
                 # Add the character to our buffer
                 self._char_buffer += char
+                self.update()
                 
                 # If we have a newline or carriage return, update the display
                 if char == '\n' or char == '\r':
                     if self._char_buffer.strip():  # Only append non-empty lines
-                        self._output.append(self._char_buffer)
+                        # Use the same approach as append_to_output
+                        self._output.value += self._char_buffer
+                        # Scroll to the bottom
+                        self._output.tk.see("end")
                     self._char_buffer = ""  # Reset the buffer
                 
                 self._repl.character_queue.task_done()
@@ -189,9 +192,6 @@ def run():
     
     # Create a ForthRepl instance
     repl = ForthRepl()
-    
-    # Clear any characters that might be in the queue from previous tests
-    repl.clear_character_queue()
     
     # Create a SerialAdapter and set it as the communication port
     # The character handler will be set when the SerialAdapter is created

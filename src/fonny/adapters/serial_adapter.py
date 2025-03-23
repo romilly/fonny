@@ -30,12 +30,11 @@ class SerialAdapter(CommunicationPort):
         self._port = port
         self._baud_rate = baud_rate
         self._timeout = timeout
-        self._serial: Optional[serial.Serial] = None
         self._character_handler = character_handler
         self._stop_reading = threading.Event()
         self._read_thread = None
-        self._char_queue = Queue()
-    
+        self._serial =None
+
     def connect(self) -> bool:
         """
         Connect to the FORTH system via serial port.
@@ -93,28 +92,13 @@ class SerialAdapter(CommunicationPort):
                 if self._serial.in_waiting > 0:
                     raw_data = self._serial.read(1)
                     char = raw_data.decode('utf-8', errors='replace')
-                    # Put the character in the queue instead of directly calling the handler
-                    self._char_queue.put(char)
-                    
-                    # If there's a character handler, also pass the character directly
-                    # This maintains backward compatibility with existing code
-                    if self._character_handler:
-                        self._character_handler.handle_character(char)
+                    self._character_handler.handle_character(char)
                 else:
                     # Short sleep to prevent high CPU usage
                     time.sleep(0.01)
             except Exception as e:
                 print(f"Error in reading thread: {e}")
                 time.sleep(0.1)  # Sleep a bit longer on error
-    
-    def get_character_queue(self) -> Queue:
-        """
-        Get the queue containing characters read from the serial port.
-        
-        Returns:
-            Queue: A thread-safe queue containing characters read from the serial port
-        """
-        return self._char_queue
     
     def send_command(self, command: str) -> None:
         """
@@ -129,26 +113,6 @@ class SerialAdapter(CommunicationPort):
         print(f"Sending command: {repr(command)}")
         self._serial.write(command.encode())
         print(f"Command sent: {repr(command)}")
-    
-    def receive_response(self) -> Optional[str]:
-        """
-        Receive a response from the FORTH system.
-        
-        Returns:
-            The response received or None if no response is available
-        
-        Note:
-            This method is maintained for backward compatibility.
-            When using a character handler, responses are processed
-            character by character in real-time.
-        """
-        if not self.is_connected():
-            raise ConnectionError("Not connected to FORTH system")
-        
-        if self._serial.in_waiting:
-            response = self._serial.readline().decode('utf-8', errors='replace')
-            return response
-        return None
     
     def is_connected(self) -> bool:
         """
@@ -175,3 +139,4 @@ class SerialAdapter(CommunicationPort):
             discarded = self._serial.read(self._serial.in_waiting)
             time.sleep(0.1)  # Short delay to allow more data to arrive if needed
         print("Serial buffer cleared")
+

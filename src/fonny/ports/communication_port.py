@@ -34,16 +34,7 @@ class CommunicationPort(ABC):
             command: The command to send
         """
         pass
-    
-    @abstractmethod
-    def receive_response(self) -> Optional[str]:
-        """
-        Receive a response from the FORTH system.
-        
-        Returns:
-            The response received or None if no response is available
-        """
-        pass
+
     
     @abstractmethod
     def is_connected(self) -> bool:

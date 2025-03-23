@@ -50,6 +50,15 @@ The SerialAdapter tests have been moved from unit tests to integration tests, as
 2. Are skippable with a pytest marker if the Pico is not connected
 3. Test sending Forth commands and verify the responses
 
+### Communication Interface Simplification
+
+The CommunicationPort interface has been simplified to focus on the character-by-character processing approach:
+
+1. The `receive_response` method has been removed from the CommunicationPort interface
+2. SerialAdapter now only implements the essential methods: connect, disconnect, send_command, and is_connected
+3. Character processing is handled directly via the CharacterHandlerPort interface
+4. This simplification aligns with the project's preference for direct, real-time character processing over batch response handling
+
 ### End-to-End Tests
 
 End-to-end tests verify the entire system works correctly from the user interface to the hardware. These tests:
@@ -61,14 +70,16 @@ End-to-end tests verify the entire system works correctly from the user interfac
 
 #### Threading in GUI Tests
 
-The end-to-end GUI tests use a thread-safe queue-based approach to handle communication between the background serial reading thread and the GUI thread:
+The end-to-end GUI tests use a hybrid approach for communication between the background serial reading thread and the GUI thread:
 
-1. A thread-safe queue in SerialAdapter stores characters read from the serial port
-2. A character queue in ForthRepl receives characters
-3. The GUI polls the queue on the main thread using guizero's `repeat()` method
-4. Characters are accumulated in a buffer and displayed when complete lines are received
+1. SerialAdapter reads characters from the serial port in a background thread
+2. Characters are directly passed to the ForthRepl's handle_character method
+3. ForthRepl places these characters in a thread-safe queue
+4. The GUI polls this queue on the main thread using guizero's `repeat()` method
+5. Characters are accumulated in a buffer and displayed when complete lines are received
+6. The GUI calls update() after each character to ensure timely display updates
 
-This approach ensures all GUI updates happen on the main thread, avoiding the "main thread is not in main loop" error.
+This approach ensures all GUI updates happen on the main thread, avoiding the "main thread is not in main loop" error, while maintaining a clean separation between the communication layer and the GUI.
 
 ## Running Tests
 
