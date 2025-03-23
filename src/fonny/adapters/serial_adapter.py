@@ -76,38 +76,29 @@ class SerialAdapter(CommunicationPort):
         """
         Start a background thread to read characters from the serial port.
         """
-        print("Starting character reading thread")
         self._stop_reading.clear()
         self._read_thread = threading.Thread(target=self._read_characters)
         self._read_thread.daemon = True
         self._read_thread.start()
-        print("Character reading thread started")
     
     def _read_characters(self) -> None:
         """
         Read characters from the serial port and pass them to the character handler.
         This method runs in a background thread.
         """
-        print("Reading thread started, waiting for characters...")
         while not self._stop_reading.is_set() and self.is_connected():
             try:
                 if self._serial.in_waiting > 0:
                     raw_data = self._serial.read(1)
                     char = raw_data.decode('utf-8', errors='replace')
-                    ascii_val = ord(char) if len(char) > 0 else -1
-                    print(f"Read character: {repr(char)} (ASCII: {ascii_val}, Hex: {raw_data.hex()})")
                     if self._character_handler:
-                        print(f"Passing character to handler: {repr(char)}")
                         self._character_handler.handle_character(char)
-                    else:
-                        print("No character handler available")
                 else:
                     # Short sleep to prevent high CPU usage
                     time.sleep(0.01)
             except Exception as e:
                 print(f"Error in reading thread: {e}")
                 time.sleep(0.1)  # Sleep a bit longer on error
-        print("Reading thread stopped")
     
     def send_command(self, command: str) -> None:
         """
@@ -166,6 +157,5 @@ class SerialAdapter(CommunicationPort):
         while self._serial.in_waiting > 0:
             # Read and discard all available data
             discarded = self._serial.read(self._serial.in_waiting)
-            print(f"Discarded {len(discarded)} bytes from buffer")
             time.sleep(0.1)  # Short delay to allow more data to arrive if needed
         print("Serial buffer cleared")
