@@ -10,6 +10,9 @@ Fonny follows a "baby steps" approach to development and testing, with a focus o
 2. Committing to Git after each passing test
 3. Using a hexagonal architecture to facilitate testing
 4. Testing at multiple levels (unit, integration, end-to-end)
+5. Preferring real implementations over mocks when practical
+6. Creating explicit test doubles instead of using mocking libraries
+7. Clearly separating unit tests from integration tests
 
 ## Test Structure
 
@@ -22,6 +25,8 @@ tests/
 ├── helpers/           # Test helpers and utilities
 │   └── tk_testing.py  # Utilities for testing guizero components
 ├── integration/       # Integration tests
+│   ├── test_serial_adapter.py  # Tests using real hardware connections
+│   └── test_serial_adapter_integration.py  # Additional integration tests
 └── unit/              # Unit tests
 ```
 
@@ -29,11 +34,21 @@ tests/
 
 ### Unit Tests
 
-Unit tests focus on testing individual components in isolation, using mocks for dependencies when necessary. This is facilitated by the hexagonal architecture of Fonny, which defines clear interfaces (ports) that can be mocked.
+Unit tests focus on testing individual components in isolation, using test doubles for dependencies when necessary. This is facilitated by the hexagonal architecture of Fonny, which defines clear interfaces (ports) that can be implemented by test doubles.
+
+Key principles for unit tests:
+- Create proper test doubles (with "Mock" prefix) that implement the required interfaces
+- Avoid using mocking libraries like MagicMock which can lead to brittle tests
+- Focus on testing behavior rather than implementation details
 
 ### Integration Tests
 
 Integration tests verify that multiple components work together correctly. For example, testing that the ForthRepl correctly interacts with the SerialAdapter and ArchivistPort implementations.
+
+The SerialAdapter tests have been moved from unit tests to integration tests, as they should test with a real Pico device rather than using mocks. These tests:
+1. Use a real connection to a Pico device at `/dev/ttyACM0`
+2. Are skippable with a pytest marker if the Pico is not connected
+3. Test sending Forth commands and verify the responses
 
 ### End-to-End Tests
 
@@ -43,6 +58,17 @@ End-to-end tests verify the entire system works correctly from the user interfac
 2. Connect to a real Raspberry Pi Pico running FORTH
 3. Send commands and verify responses
 4. Test error handling
+
+#### Threading in GUI Tests
+
+The end-to-end GUI tests use a thread-safe queue-based approach to handle communication between the background serial reading thread and the GUI thread:
+
+1. A thread-safe queue in SerialAdapter stores characters read from the serial port
+2. A character queue in ForthRepl receives characters
+3. The GUI polls the queue on the main thread using guizero's `repeat()` method
+4. Characters are accumulated in a buffer and displayed when complete lines are received
+
+This approach ensures all GUI updates happen on the main thread, avoiding the "main thread is not in main loop" error.
 
 ## Running Tests
 
@@ -61,6 +87,12 @@ To run specific categories of tests:
 ```bash
 # Run end-to-end tests
 python -m pytest tests/e2e/
+
+# Run integration tests
+python -m pytest tests/integration/
+
+# Run unit tests
+python -m pytest tests/unit/
 
 # Run a specific test file
 python -m pytest tests/e2e/test_forth_gui.py
@@ -99,9 +131,11 @@ When writing new tests for Fonny, follow these guidelines:
 3. Include docstrings that describe the test's purpose
 4. For GUI tests, use the helper functions in tk_testing.py
 5. For end-to-end tests, ensure a Raspberry Pi Pico is connected and properly set up
+6. When creating mock classes, use the "Mock" prefix (e.g., MockCharacterHandler) for clarity
+7. Prefer real implementations over mocks when practical
 
 ## Test Requirements
 
 - Python 3.10 or higher
 - pytest
-- A Raspberry Pi Pico running FORTH (for end-to-end tests)
+- A Raspberry Pi Pico running FORTH (for integration and end-to-end tests)
