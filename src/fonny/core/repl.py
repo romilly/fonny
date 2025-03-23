@@ -1,10 +1,11 @@
 from typing import Optional, List
 from fonny.ports.communication_port import CommunicationPort
 from fonny.ports.archivist_port import ArchivistPort
-from fonny.adapters.serial_adapter import SerialAdapter
+from fonny.adapters.null_adapter import NullCommunicationAdapter
+from fonny.ports.character_handler_port import CharacterHandlerPort
 
 
-class ForthRepl:
+class ForthRepl(CharacterHandlerPort):
     """
     Core REPL (Read-Eval-Print Loop) for interacting with a FORTH system.
     This class uses a CommunicationPort to send commands and receive responses.
@@ -17,8 +18,32 @@ class ForthRepl:
         Args:
             communication_port: The port to use for communication with the FORTH system
         """
-        self._comm_port = communication_port or SerialAdapter()
+        self._comm_port = communication_port or NullCommunicationAdapter()
         self._archivists: List[ArchivistPort] = []
+        self._current_response = ""
+    
+    def set_communication_port(self, communication_port: CommunicationPort) -> None:
+        """
+        Set the communication port to use for interacting with the FORTH system.
+        
+        Args:
+            communication_port: The port to use for communication with the FORTH system
+        """
+        self._comm_port = communication_port
+    
+    def handle_character(self, char: str) -> None:
+        """
+        Handle a single character received from the communication port.
+        
+        Args:
+            char: The character received
+        """
+        self._current_response += char
+        
+        # If we have a complete line (newline character), process it
+        if char == '\n' or char == '\r':
+            self._process_response(self._current_response)
+            self._current_response = ""
     
     def start(self) -> bool:
         """
@@ -88,6 +113,17 @@ class ForthRepl:
                 for archivist in self._archivists:
                     archivist.record_system_error(str(e))
                 raise
+    
+    def _process_response(self, response: str) -> None:
+        """
+        Process a response from the FORTH system.
+        
+        Args:
+            response: The response to process
+        """
+        # Record the response in all archivists
+        for archivist in self._archivists:
+            archivist.record_system_response(response)
     
     def add_archivist(self, archivist: ArchivistPort) -> None:
         """
