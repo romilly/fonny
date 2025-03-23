@@ -1,6 +1,7 @@
 import time
 import threading
 from typing import Optional
+from queue import Queue
 
 import serial
 from serial import SerialException
@@ -33,6 +34,7 @@ class SerialAdapter(CommunicationPort):
         self._character_handler = character_handler
         self._stop_reading = threading.Event()
         self._read_thread = None
+        self._char_queue = Queue()
     
     def connect(self) -> bool:
         """
@@ -83,7 +85,7 @@ class SerialAdapter(CommunicationPort):
     
     def _read_characters(self) -> None:
         """
-        Read characters from the serial port and pass them to the character handler.
+        Read characters from the serial port and put them into the queue.
         This method runs in a background thread.
         """
         while not self._stop_reading.is_set() and self.is_connected():
@@ -91,6 +93,11 @@ class SerialAdapter(CommunicationPort):
                 if self._serial.in_waiting > 0:
                     raw_data = self._serial.read(1)
                     char = raw_data.decode('utf-8', errors='replace')
+                    # Put the character in the queue instead of directly calling the handler
+                    self._char_queue.put(char)
+                    
+                    # If there's a character handler, also pass the character directly
+                    # This maintains backward compatibility with existing code
                     if self._character_handler:
                         self._character_handler.handle_character(char)
                 else:
@@ -99,6 +106,15 @@ class SerialAdapter(CommunicationPort):
             except Exception as e:
                 print(f"Error in reading thread: {e}")
                 time.sleep(0.1)  # Sleep a bit longer on error
+    
+    def get_character_queue(self) -> Queue:
+        """
+        Get the queue containing characters read from the serial port.
+        
+        Returns:
+            Queue: A thread-safe queue containing characters read from the serial port
+        """
+        return self._char_queue
     
     def send_command(self, command: str) -> None:
         """
