@@ -1,5 +1,5 @@
 from typing import Optional, List
-from queue import Queue
+from queue import Queue, Empty
 from fonny.ports.communication_port import CommunicationPort
 from fonny.ports.archivist_port import ArchivistPort
 from fonny.adapters.null_adapter import NullCommunicationAdapter
@@ -154,6 +154,19 @@ class ForthRepl(CharacterHandlerPort):
         """
         if archivist in self._archivists:
             self._archivists.remove(archivist)
+    
+    def clear_character_queue(self) -> None:
+        """
+        Clear all characters from the queue.
+        This is useful when starting the application to avoid displaying
+        leftover data from previous tests.
+        """
+        while not self.character_queue.empty():
+            try:
+                self.character_queue.get_nowait()
+                self.character_queue.task_done()
+            except Empty:
+                break
     
     def run_interactive_session(self) -> None:
         """

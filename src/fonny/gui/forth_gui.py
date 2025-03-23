@@ -184,8 +184,20 @@ class ForthGui(App):
 def run():
     """
     Run the FORTH GUI application.
-
     """
+    from fonny.adapters.serial_adapter import SerialAdapter
+    
+    # Create a ForthRepl instance
     repl = ForthRepl()
+    
+    # Clear any characters that might be in the queue from previous tests
+    repl.clear_character_queue()
+    
+    # Create a SerialAdapter and set it as the communication port
+    # The character handler will be set when the SerialAdapter is created
+    serial_adapter = SerialAdapter(character_handler=repl, port='/dev/ttyACM0')
+    repl.set_communication_port(serial_adapter)
+    
+    # Create and display the GUI
     app = ForthGui(repl)
     app.display()
