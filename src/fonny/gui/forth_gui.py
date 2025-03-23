@@ -115,8 +115,6 @@ class ForthGui(App):
         if not command:
             return
             
-        self.append_to_output(f"> {command}")
-        
         # Check if we're connected first
         if not self._repl._comm_port.is_connected():
             self.append_to_output("Error: Not connected to FORTH system. Please connect first.")

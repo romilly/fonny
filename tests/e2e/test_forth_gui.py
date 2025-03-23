@@ -88,6 +88,40 @@ class TestForthGui(unittest.TestCase):
         output_text = self.gui._output.value
         self.assertIn("unable to parse", output_text, "Error message not displayed for invalid command")
 
+    def test_no_command_echo_in_response(self):
+        """Test that commands are not displayed immediately but echoed by the FORTH system."""
+        # Connect if not already connected
+        if not self.repl._comm_port.is_connected():
+            push(self.gui._connect_button)
+            time.sleep(1)
+            self.gui.update()
+        
+        # Clear the output first
+        self.gui._output.value = ""
+        self.gui.update()
+        
+        # Send a simple command
+        test_command = "2 2 + ."
+        type_in(self.gui._command_input, test_command)
+        push(self.gui._send_button)
+        
+        # Wait for response
+        time.sleep(1)
+        self.gui.update()
+        
+        # Get the output text
+        output_text = self.gui._output.value
+        
+        # Verify that the command is NOT shown with a ">" prefix (which would indicate manual display)
+        self.assertNotIn(f"> {test_command}", output_text, 
+                         "Command should not be manually displayed with '>' prefix")
+        
+        # Check for the complete expected output format
+        # The FORTH system outputs the command, result, and 'ok' all on the same line
+        expected_pattern = f"{test_command} 4  ok"
+        self.assertIn(expected_pattern, output_text, 
+                      f"Output should contain the complete pattern: '{expected_pattern}'")
+
 
 if __name__ == "__main__":
     unittest.main()
