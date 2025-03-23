@@ -1,148 +1,91 @@
 import pytest
-from unittest.mock import patch, MagicMock
+import time
+import os
 from serial import SerialException
 
 from fonny.adapters.serial_adapter import SerialAdapter
+from fonny.ports.character_handler_port import CharacterHandlerPort
 
 
+class TestCharacterHandler(CharacterHandlerPort):
+    """Test implementation of CharacterHandlerPort for integration testing."""
+    
+    def __init__(self):
+        """Initialize the test character handler."""
+        self.received_chars = []
+    
+    def handle_character(self, char: str) -> None:
+        """Handle a character by storing it."""
+        self.received_chars.append(char)
+    
+    def get_received_text(self) -> str:
+        """Get all received characters as a string."""
+        return ''.join(self.received_chars)
+    
+    def clear(self) -> None:
+        """Clear all received characters."""
+        self.received_chars = []
+
+
+# Skip these tests if the Pico is not connected
+skip_if_no_pico = pytest.mark.skipif(
+    not os.path.exists('/dev/ttyACM0'),
+    reason="Pico device not connected at /dev/ttyACM0"
+)
+
+
+@skip_if_no_pico
 class TestSerialAdapter:
-    """Tests for the SerialAdapter class."""
+    """Integration tests for the SerialAdapter class with a real Pico device."""
     
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_connect_creates_serial_connection(self, mock_serial):
-        """Test that connect creates a serial connection with the right parameters."""
-        # Arrange
-        adapter = SerialAdapter(port='/dev/test', baud_rate=9600, timeout=2)
-        mock_serial.return_value = MagicMock()
+    @pytest.fixture
+    def serial_adapter(self):
+        """Create a SerialAdapter connected to a real Pico device."""
+        # Create a character handler to receive responses
+        handler = TestCharacterHandler()
         
-        # Act
-        result = adapter.connect()
-        
-        # Assert
-        assert result is True
-        mock_serial.assert_called_once_with(
-            port='/dev/test',
-            baudrate=9600,
-            timeout=2
+        # Create and connect the adapter
+        adapter = SerialAdapter(
+            character_handler=handler,
+            port='/dev/ttyACM0',
+            baud_rate=115200,
+            timeout=1
         )
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_connect_handles_exception(self, mock_serial):
-        """Test that connect handles exceptions gracefully."""
-        # Arrange
-        adapter = SerialAdapter()
-        mock_serial.side_effect = SerialException("Test exception")
         
-        # Act
-        result = adapter.connect()
+        # Connect to the Pico
+        connected = adapter.connect()
+        if not connected:
+            pytest.skip("Failed to connect to Pico device")
         
-        # Assert
-        assert result is False
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_disconnect_closes_connection(self, mock_serial):
-        """Test that disconnect closes the serial connection."""
-        # Arrange
-        mock_serial_instance = MagicMock()
-        mock_serial.return_value = mock_serial_instance
-        adapter = SerialAdapter()
-        adapter.connect()
+        # Clear any pending output
+        adapter.clear_buffer()
         
-        # Act
+        # Wait for the connection to stabilize
+        time.sleep(0.5)
+        
+        # Return the adapter and handler for use in tests
+        yield (adapter, handler)
+        
+        # Disconnect after the test
         adapter.disconnect()
-        
-        # Assert
-        mock_serial_instance.close.assert_called_once()
-        assert adapter._serial is None
     
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_is_connected_returns_true_when_connected(self, mock_serial):
-        """Test that is_connected returns True when connected."""
-        # Arrange
-        mock_serial_instance = MagicMock()
-        mock_serial_instance.is_open = True
-        mock_serial.return_value = mock_serial_instance
-        adapter = SerialAdapter()
-        adapter.connect()
+    def test_send_forth_command_and_receive_response(self, serial_adapter):
+        """Test sending a Forth command and receiving the response."""
+        adapter, handler = serial_adapter
         
-        # Act & Assert
-        assert adapter.is_connected() is True
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_is_connected_returns_false_when_not_connected(self, mock_serial):
-        """Test that is_connected returns False when not connected."""
-        # Arrange
-        adapter = SerialAdapter()
+        # Clear any previous characters
+        handler.clear()
         
-        # Act & Assert
-        assert adapter.is_connected() is False
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_send_command_writes_to_serial(self, mock_serial):
-        """Test that send_command writes to the serial connection."""
-        # Arrange
-        mock_serial_instance = MagicMock()
-        mock_serial.return_value = mock_serial_instance
-        adapter = SerialAdapter()
-        adapter.connect()
+        # Send a simple Forth command that adds two numbers
+        command = "2 2 + ."
+        adapter.send_command(command + "\r\n")
         
-        # Act
-        adapter.send_command("test command")
+        # Wait for the response
+        time.sleep(1)
         
-        # Assert
-        mock_serial_instance.write.assert_called_once_with(b"test command")
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_send_command_raises_error_when_not_connected(self, mock_serial):
-        """Test that send_command raises an error when not connected."""
-        # Arrange
-        adapter = SerialAdapter()
+        # Get the response from the character handler
+        response = handler.get_received_text()
         
-        # Act & Assert
-        with pytest.raises(ConnectionError):
-            adapter.send_command("test command")
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_receive_response_reads_from_serial(self, mock_serial):
-        """Test that receive_response reads from the serial connection."""
-        # Arrange
-        mock_serial_instance = MagicMock()
-        mock_serial_instance.in_waiting = True
-        mock_serial_instance.readline.return_value = b"test response"
-        mock_serial.return_value = mock_serial_instance
-        adapter = SerialAdapter()
-        adapter.connect()
-        
-        # Act
-        response = adapter.receive_response()
-        
-        # Assert
-        assert response == "test response"
-        mock_serial_instance.readline.assert_called_once()
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_receive_response_returns_none_when_no_data(self, mock_serial):
-        """Test that receive_response returns None when no data is available."""
-        # Arrange
-        mock_serial_instance = MagicMock()
-        mock_serial_instance.in_waiting = False
-        mock_serial.return_value = mock_serial_instance
-        adapter = SerialAdapter()
-        adapter.connect()
-        
-        # Act
-        response = adapter.receive_response()
-        
-        # Assert
-        assert response is None
-        mock_serial_instance.readline.assert_not_called()
-    
-    @patch('fonny.adapters.serial_adapter.serial.Serial')
-    def test_receive_response_raises_error_when_not_connected(self, mock_serial):
-        """Test that receive_response raises an error when not connected."""
-        # Arrange
-        adapter = SerialAdapter()
-        
-        # Act & Assert
-        with pytest.raises(ConnectionError):
-            adapter.receive_response()
+        # Verify the response contains the command and the result
+        assert command in response
+        assert "4  ok" in response
