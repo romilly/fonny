@@ -73,7 +73,7 @@ The GUI provides:
 
 ### Running Tests
 
-Test strategy is described in ![testing.md](docs/testing.md)
+Test strategy is described in [testing.md](docs/testing.md)
 
 Run the tests using pytest:
 ```
