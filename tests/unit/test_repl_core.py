@@ -318,12 +318,10 @@ class TestForthRepl:
         """Test that archivists record responses."""
         # Arrange
         mock_port = MockCommunicationPort()
-        repl = ForthRepl()
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         repl.set_communication_port(mock_port)
         repl.start()
-        
-        mock_archivist = MockArchivist()
-        repl.add_archivist(mock_archivist)
         
         # Act
         repl.process_command("some command")
@@ -365,12 +363,13 @@ class TestForthRepl:
         """Test that remove_archivist removes an archivist."""
         # Arrange
         mock_port = MockCommunicationPort(responses=["Response"])
-        repl = ForthRepl()
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         repl.set_communication_port(mock_port)
         repl.start()
         
-        mock_archivist = MockArchivist()
-        repl.add_archivist(mock_archivist)
+        # Clear any events recorded during setup
+        mock_archivist.events.clear()
         
         # Act
         repl.remove_archivist(mock_archivist)
@@ -383,11 +382,9 @@ class TestForthRepl:
         """Test that archivists record connection events."""
         # Arrange
         mock_port = MockCommunicationPort()
-        repl = ForthRepl()
-        repl.set_communication_port(mock_port)
-        
         mock_archivist = MockArchivist()
-        repl.add_archivist(mock_archivist)
+        repl = ForthRepl(mock_archivist)
+        repl.set_communication_port(mock_port)
         
         # Act
         repl.start()
@@ -404,11 +401,9 @@ class TestForthRepl:
         """Test that archivists record errors."""
         # Arrange
         mock_port = MockCommunicationPortWithError("Connection error")
-        repl = ForthRepl()
-        repl.set_communication_port(mock_port)
-        
         mock_archivist = MockArchivist()
-        repl.add_archivist(mock_archivist)
+        repl = ForthRepl(mock_archivist)
+        repl.set_communication_port(mock_port)
         
         # Act
         result = repl.start()
@@ -421,74 +416,137 @@ class TestForthRepl:
     def test_handle_character_processes_single_character(self):
         """Test that handle_character processes a single character."""
         # Arrange
-        repl = ForthRepl()
-        test_archivist = MockArchivist()
-        repl.add_archivist(test_archivist)
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         
         # Act
         repl.handle_character('A')
         
         # Assert
-        assert len(test_archivist.system_responses) == 0
+        assert len(mock_archivist.system_responses) == 0
     
     def test_handle_character_processes_complete_line(self):
         """Test that handle_character processes a complete line ending with newline."""
         # Arrange
-        repl = ForthRepl()
-        test_archivist = MockArchivist()
-        repl.add_archivist(test_archivist)
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         
         # Act
         for char in "Hello, FORTH!\n":
             repl.handle_character(char)
         
         # Assert
-        assert len(test_archivist.system_responses) == 1
-        assert test_archivist.system_responses[0] == "Hello, FORTH!"
+        assert len(mock_archivist.system_responses) == 1
+        assert mock_archivist.system_responses[0] == "Hello, FORTH!"
     
     def test_handle_character_processes_multiple_lines(self):
         """Test that handle_character processes multiple lines."""
         # Arrange
-        repl = ForthRepl()
-        test_archivist = MockArchivist()
-        repl.add_archivist(test_archivist)
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         
         # Act
         for char in "Line 1\nLine 2\nLine 3\n":
             repl.handle_character(char)
         
         # Assert
-        assert len(test_archivist.system_responses) == 3
-        assert test_archivist.system_responses[0] == "Line 1"
-        assert test_archivist.system_responses[1] == "Line 2"
-        assert test_archivist.system_responses[2] == "Line 3"
+        assert len(mock_archivist.system_responses) == 3
+        assert mock_archivist.system_responses[0] == "Line 1"
+        assert mock_archivist.system_responses[1] == "Line 2"
+        assert mock_archivist.system_responses[2] == "Line 3"
     
     def test_handle_character_processes_carriage_return(self):
         """Test that handle_character processes lines ending with carriage return."""
         # Arrange
-        repl = ForthRepl()
-        test_archivist = MockArchivist()
-        repl.add_archivist(test_archivist)
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         
         # Act
         for char in "Hello, FORTH!\r":
             repl.handle_character(char)
         
         # Assert
-        assert len(test_archivist.system_responses) == 1
-        assert test_archivist.system_responses[0] == "Hello, FORTH!"
+        assert len(mock_archivist.system_responses) == 1
+        assert mock_archivist.system_responses[0] == "Hello, FORTH!"
     
     def test_handle_character_processes_carriage_return_newline(self):
         """Test that handle_character processes lines ending with carriage return and newline."""
         # Arrange
-        repl = ForthRepl()
-        test_archivist = MockArchivist()
-        repl.add_archivist(test_archivist)
+        mock_archivist = MockArchivist()
+        repl = ForthRepl(mock_archivist)
         
         # Act
         for char in "Hello, FORTH!\r\n":
             repl.handle_character(char)
         
         # Assert
-        assert len(test_archivist.system_responses) == 1
-        assert test_archivist.system_responses[0] == "Hello, FORTH!"
+        assert len(mock_archivist.system_responses) == 1
+        assert mock_archivist.system_responses[0] == "Hello, FORTH!"
+    
+    def test_archivist_records_connection_events(self):
+        """Test that archivists record connection events."""
+        # Arrange
+        mock_port = MockCommunicationPort()
+        test_archivist = MockArchivist()
+        repl = ForthRepl(test_archivist)
+        repl.set_communication_port(mock_port)
+        
+        # Act
+        repl.start()
+        repl.stop()
+        
+        # Assert
+        # Check for connection opened event
+        assert any(event[0] == EventType.CONNECTION_OPENED for event in test_archivist.events)
+        # Check for connection closed event
+        assert any(event[0] == EventType.CONNECTION_CLOSED for event in test_archivist.events)
+    
+    def test_archivist_records_user_commands(self):
+        """Test that archivists record user commands."""
+        # Arrange
+        mock_port = MockCommunicationPort()
+        test_archivist = MockArchivist()
+        repl = ForthRepl(test_archivist)
+        repl.set_communication_port(mock_port)
+        repl.start()
+        
+        # Act
+        repl.process_command("test command")
+        
+        # Assert
+        assert any(event[0] == EventType.USER_COMMAND and event[1]["command"] == "test command" for event in test_archivist.events)
+    
+    def test_archivist_records_system_responses(self):
+        """Test that archivists record system responses."""
+        # Arrange
+        mock_port = MockCommunicationPort()
+        test_archivist = MockArchivist()
+        repl = ForthRepl(test_archivist)
+        repl.set_communication_port(mock_port)
+        repl.start()
+        
+        # Act
+        repl.process_command("test command")
+        
+        # Simulate receiving a response character by character
+        for char in "test response\n":
+            repl.handle_character(char)
+        
+        # Assert
+        assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "test response" for event in test_archivist.events)
+    
+    def test_archivist_records_system_errors(self):
+        """Test that archivists record system errors."""
+        # Arrange
+        mock_port = MockCommunicationPortWithError("Connection error")
+        test_archivist = MockArchivist()
+        repl = ForthRepl(test_archivist)
+        repl.set_communication_port(mock_port)
+        repl.start()
+        
+        # Act & Assert
+        with pytest.raises(Exception):
+            repl.process_command("test command")
+        
+        # Assert
+        assert any(event[0] == EventType.SYSTEM_ERROR for event in test_archivist.events)
