@@ -10,7 +10,7 @@ class ForthGui(App):
     Uses guizero for the UI components.
     """
     
-    def __init__(self, repl: ForthRepl, title="Fonny - FORTH REPL", width=800, height=600, **kwargs):
+    def __init__(self, repl: ForthRepl, title="Fonny - FORTH REPL", width=1200, height=900, **kwargs):
         """
         Initialize the GUI application with a FORTH REPL.
         
@@ -117,7 +117,10 @@ class ForthGui(App):
             command_container, 
             text="", 
             width="fill", 
-            align="left"
+            align="left",
+            multiline=True,
+            height=6,
+            scrollbar=True
         )
         self._command_input.when_key_pressed = self._handle_key_press
         self._send_button = PushButton(
