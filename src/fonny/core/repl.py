@@ -97,33 +97,11 @@ class ForthRepl(CharacterHandlerPort):
         
         try:
             self._comm_port.send_command(command)
-            
-            # # Process responses
-            # self._process_responses()
         except Exception as e:
             # Record the error in all archivists
             for archivist in self._archivists:
                 archivist.record_system_error(str(e))
             raise
-    
-    # def _process_responses(self) -> None:
-    #     """
-    #     Process responses from the FORTH system.
-    #     """
-    #     while True:
-    #         try:
-    #             response = self._comm_port.receive_response()
-    #             if not response:
-    #                 break
-                    
-    #             # Record the response in all archivists
-    #             for archivist in self._archivists:
-    #                 archivist.record_system_response(response)
-    #         except Exception as e:
-    #             # Record the error in all archivists
-    #             for archivist in self._archivists:
-    #                 archivist.record_system_error(str(e))
-    #             raise
     
     def _process_response(self, response: str) -> None:
         """
