@@ -177,12 +177,9 @@ class ForthGui(App):
         self._output.tk.see("end")
     
     def cleanup(self):
-        """Clean up resources when the GUI is closed."""
+        """Clean up resources when the application is closed."""
         if self._repl._comm_port.is_connected():
             self._repl.stop()
-        # Only remove the archivist if it exists
-        if hasattr(self, '_console_archivist'):
-            self._repl.remove_archivist(self._console_archivist)
         print("Application closed. Goodbye!")
         self.destroy()  # Properly close the application window
 
