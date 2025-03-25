@@ -12,15 +12,15 @@ class ForthRepl(CharacterHandlerPort):
     This class uses a CommunicationPort to send commands and receive responses.
     """
     
-    def __init__(self):
+    def __init__(self, *archivists):
         """
         Initialize the REPL with a communication port.
         
         Args:
-            communication_port: The port to use for communication with the FORTH system
+            *archivists: Optional archivists to add during initialization
         """
         self._comm_port = NullCommunicationAdapter()
-        self._archivists: List[ArchivistPort] = []
+        self._archivists = archivists
         self._current_response = ""
         self.character_queue = Queue()
     
@@ -121,7 +121,7 @@ class ForthRepl(CharacterHandlerPort):
         Args:
             archivist: The archivist to add
         """
-        self._archivists.append(archivist)
+        self._archivists += (archivist,)
     
     def remove_archivist(self, archivist: ArchivistPort) -> None:
         """
@@ -131,7 +131,7 @@ class ForthRepl(CharacterHandlerPort):
             archivist: The archivist to remove
         """
         if archivist in self._archivists:
-            self._archivists.remove(archivist)
+            self._archivists = tuple(a for a in self._archivists if a != archivist)
     
     def clear_character_queue(self) -> None:
         """
