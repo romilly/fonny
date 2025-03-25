@@ -254,6 +254,11 @@ class TestForthRepl:
         return MockCommunicationPort(responses=["Response 1", "Response 2"])
     
     @pytest.fixture
+    def mock_port_with_error(self):
+        """Fixture that provides a MockCommunicationPort that raises an error on connect."""
+        return MockCommunicationPortWithError("Connection error")
+    
+    @pytest.fixture
     def mock_archivist(self):
         """Fixture that provides a MockArchivist instance."""
         return MockArchivist()
@@ -349,35 +354,28 @@ class TestForthRepl:
         assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "Response 1" for event in mock_archivist.events)
         assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "Response 2" for event in mock_archivist.events)
     
-    def test_archivists_record_connection_events(self):
+    def test_archivists_record_connection_events(self, repl_with_archivist, mock_port, mock_archivist):
         """Test that archivists record connection events."""
         # Arrange
-        mock_port = MockCommunicationPort()
-        mock_archivist = MockArchivist()
-        repl = ForthRepl(mock_archivist)
-        repl.set_communication_port(mock_port)
+        repl_with_archivist.set_communication_port(mock_port)
         
         # Act
-        repl.start()
-        repl.stop()
+        repl_with_archivist.start()
+        repl_with_archivist.stop()
         
         # Assert
         # Check for connection opened event
         assert any(event[0] == EventType.CONNECTION_OPENED for event in mock_archivist.events)
-        
         # Check for connection closed event
         assert any(event[0] == EventType.CONNECTION_CLOSED for event in mock_archivist.events)
     
-    def test_archivists_record_errors(self):
+    def test_archivists_record_errors(self, repl_with_archivist, mock_port_with_error, mock_archivist):
         """Test that archivists record errors."""
         # Arrange
-        mock_port = MockCommunicationPortWithError("Connection error")
-        mock_archivist = MockArchivist()
-        repl = ForthRepl(mock_archivist)
-        repl.set_communication_port(mock_port)
+        repl_with_archivist.set_communication_port(mock_port_with_error)
         
         # Act
-        result = repl.start()
+        result = repl_with_archivist.start()
         
         # Assert
         assert result is False  # Connection should fail
@@ -430,23 +428,20 @@ class TestForthRepl:
         assert len(mock_archivist.system_responses) == 1
         assert mock_archivist.system_responses[0] == "Hello, FORTH!"
     
-    def test_archivist_records_connection_events(self):
+    def test_archivist_records_connection_events(self, repl_with_archivist, mock_port, mock_archivist):
         """Test that archivists record connection events."""
         # Arrange
-        mock_port = MockCommunicationPort()
-        test_archivist = MockArchivist()
-        repl = ForthRepl(test_archivist)
-        repl.set_communication_port(mock_port)
+        repl_with_archivist.set_communication_port(mock_port)
         
         # Act
-        repl.start()
-        repl.stop()
+        repl_with_archivist.start()
+        repl_with_archivist.stop()
         
         # Assert
         # Check for connection opened event
-        assert any(event[0] == EventType.CONNECTION_OPENED for event in test_archivist.events)
+        assert any(event[0] == EventType.CONNECTION_OPENED for event in mock_archivist.events)
         # Check for connection closed event
-        assert any(event[0] == EventType.CONNECTION_CLOSED for event in test_archivist.events)
+        assert any(event[0] == EventType.CONNECTION_CLOSED for event in mock_archivist.events)
     
     def test_archivist_records_user_commands(self, connected_repl_with_archivist, mock_archivist):
         """Test that archivists record user commands."""
@@ -467,18 +462,15 @@ class TestForthRepl:
         # Assert
         assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "test response" for event in mock_archivist.events)
     
-    def test_archivist_records_system_errors(self):
+    def test_archivist_records_system_errors(self, repl_with_archivist, mock_port_with_error, mock_archivist):
         """Test that archivists record system errors."""
         # Arrange
-        mock_port = MockCommunicationPortWithError("Connection error")
-        test_archivist = MockArchivist()
-        repl = ForthRepl(test_archivist)
-        repl.set_communication_port(mock_port)
-        repl.start()
+        repl_with_archivist.set_communication_port(mock_port_with_error)
+        repl_with_archivist.start()
         
         # Act & Assert
         with pytest.raises(Exception):
-            repl.process_command("test command")
+            repl_with_archivist.process_command("test command")
         
         # Assert
-        assert any(event[0] == EventType.SYSTEM_ERROR for event in test_archivist.events)
+        assert any(event[0] == EventType.SYSTEM_ERROR for event in mock_archivist.events)
