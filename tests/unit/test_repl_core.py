@@ -359,25 +359,6 @@ class TestForthRepl:
         assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "Response 1" for event in mock_archivist.events)
         assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "Response 2" for event in mock_archivist.events)
     
-    def test_remove_archivist(self):
-        """Test that remove_archivist removes an archivist."""
-        # Arrange
-        mock_port = MockCommunicationPort(responses=["Response"])
-        mock_archivist = MockArchivist()
-        repl = ForthRepl(mock_archivist)
-        repl.set_communication_port(mock_port)
-        repl.start()
-        
-        # Clear any events recorded during setup
-        mock_archivist.events.clear()
-        
-        # Act
-        repl.remove_archivist(mock_archivist)
-        repl.process_command("some command")
-        
-        # Assert
-        assert len(mock_archivist.events) == 0
-    
     def test_archivists_record_connection_events(self):
         """Test that archivists record connection events."""
         # Arrange

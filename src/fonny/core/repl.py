@@ -114,25 +114,6 @@ class ForthRepl(CharacterHandlerPort):
         for archivist in self._archivists:
             archivist.record_system_response(response)
     
-    def add_archivist(self, archivist: ArchivistPort) -> None:
-        """
-        Add an archivist that will record events.
-        
-        Args:
-            archivist: The archivist to add
-        """
-        self._archivists += (archivist,)
-    
-    def remove_archivist(self, archivist: ArchivistPort) -> None:
-        """
-        Remove a previously added archivist.
-        
-        Args:
-            archivist: The archivist to remove
-        """
-        if archivist in self._archivists:
-            self._archivists = tuple(a for a in self._archivists if a != archivist)
-    
     def clear_character_queue(self) -> None:
         """
         Clear all characters from the queue.
