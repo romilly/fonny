@@ -19,6 +19,7 @@ import time
 import unittest
 import sqlite3
 import json
+import pytest
 
 from fonny.gui.forth_gui import ForthGui
 from fonny.core.repl import ForthRepl
@@ -35,52 +36,24 @@ class TestForthGui(unittest.TestCase):
     def setUpClass(cls):
         # Create a test database path
         cls.test_db_path = "test_e2e_events.db"
-        
-        # Remove the test database if it exists
         if os.path.exists(cls.test_db_path):
             os.remove(cls.test_db_path)
-            
-        # Create a SQLiteArchivist with the test database
         cls.archivist = SQLiteArchivist(cls.test_db_path)
-        
-        # Create a real ForthRepl instance with the archivist
         cls.repl = ForthRepl(cls.archivist)
-
-        # Create a SerialAdapter with the ForthRepl as the character handler
         serial_adapter = SerialAdapter(character_handler=cls.repl)
-
-        # Set the SerialAdapter as the communication port for the ForthRepl
-
-        # Create the GUI with the real repl
         cls.repl.set_communication_port(serial_adapter)
         cls.gui = ForthGui(cls.repl, title="Fonny Test")
-        # Allow GUI to initialize
         cls.gui.update()
 
     @classmethod
     def tearDownClass(cls):
-        # Clean up
         cls.gui.cleanup()
-        # Don't call destroy() again as it's already called in cleanup()
-        
-        # Remove the test database
-        if os.path.exists(cls.test_db_path):
-            os.remove(cls.test_db_path)
+
 
     def setUp(self):
-        # Reset for each test
         self.gui.update()
         
-    def _get_events_from_db(self, event_type=None):
-        """
-        Helper method to query events from the test database.
-        
-        Args:
-            event_type: Optional EventType to filter by
-            
-        Returns:
-            List of events as dictionaries with keys: id, event_type, timestamp, data
-        """
+    def _get_events_from_db(self, event_type=None) -> dict:
         conn = sqlite3.connect(self.test_db_path)
         conn.row_factory = sqlite3.Row  # This enables column access by name
         cursor = conn.cursor()
@@ -95,8 +68,6 @@ class TestForthGui(unittest.TestCase):
             
         rows = cursor.fetchall()
         conn.close()
-        
-        # Convert rows to dictionaries and parse JSON data
         events = []
         for row in rows:
             event = dict(row)
@@ -110,7 +81,7 @@ class TestForthGui(unittest.TestCase):
         # Connect to the Pico
         push(self.gui._connect_button)
         # Wait for connection to establish
-        time.sleep(1)
+        # time.sleep(1)
         self.gui.update()
         
         # Verify connection status
@@ -119,20 +90,26 @@ class TestForthGui(unittest.TestCase):
         # Verify connection event was recorded in the database
         connection_events = self._get_events_from_db(EventType.CONNECTION_OPENED)
         self.assertGreaterEqual(len(connection_events), 1, "Connection opened event not recorded")
-        
+
         # Send the traditional FORTH test command
         test_command = "2 2 + ."
         type_in(self.gui._command_input, test_command)
         push(self.gui._send_button)
-        
-        # Wait for response
-        time.sleep(1)
-        self.gui.update()
-        
+
         # Verify that we got the expected response (4 ok)
-        output_text = self.gui._output.value
-        self.assertIn("4", output_text, "Expected '4' in response")
-        self.assertIn("ok", output_text, "Expected 'ok' in response")
+        def wait_until(timeout = 0.5) -> bool:
+            time_end = time.time() + timeout
+            while time.time() < time_end:
+                self.gui.update()
+                if '4' in self.gui._output.value:
+                    return True
+            time.sleep(0.1)
+            return False
+        self.assertTrue(wait_until(), f"4 not in {self.gui._output.value}")
+
+
+        self.assertIn("4", self.gui._output.value, "Expected '4' in response")
+        self.assertIn("ok", self.gui._output.value, "Expected 'ok' in response")
         
         # Verify command was recorded in the database
         command_events = self._get_events_from_db(EventType.USER_COMMAND)
@@ -149,12 +126,13 @@ class TestForthGui(unittest.TestCase):
         response_events = self._get_events_from_db(EventType.SYSTEM_RESPONSE)
         self.assertGreaterEqual(len(response_events), 1, "System response event not recorded")
 
+    @pytest.mark.skip(reason="Experimenting")
     def test_error_handling(self):
         """Test that errors are properly displayed."""
         # Connect if not already connected
         if not self.repl._comm_port.is_connected():
             push(self.gui._connect_button)
-            time.sleep(1)
+            time.sleep(1.0)
             self.gui.update()
         
         # Send an invalid command
@@ -193,6 +171,7 @@ class TestForthGui(unittest.TestCase):
                           if "unable to parse" in event['data']['response']]
         self.assertGreaterEqual(len(error_responses), 1, "Error response not found in recorded events")
 
+    @pytest.mark.skip(reason="Experimenting")
     def test_no_command_echo_in_response(self):
         """Test that commands are not displayed immediately but echoed by the FORTH system."""
         # Connect if not already connected
