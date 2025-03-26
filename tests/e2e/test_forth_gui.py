@@ -96,16 +96,20 @@ class TestForthGui(unittest.TestCase):
         type_in(self.gui._command_input, test_command)
         push(self.gui._send_button)
 
+        def check_for_4():
+            self.gui.update()
+            return '4' in self.gui._output.value
+
         # Verify that we got the expected response (4 ok)
-        def wait_until(timeout = 0.5) -> bool:
+        def wait_until(condition: callable, timeout = 0.5, delay = 0.1) -> bool:
             time_end = time.time() + timeout
             while time.time() < time_end:
                 self.gui.update()
-                if '4' in self.gui._output.value:
+                if condition():
                     return True
-            time.sleep(0.1)
+            time.sleep(delay)
             return False
-        self.assertTrue(wait_until(), f"4 not in {self.gui._output.value}")
+        self.assertTrue(wait_until(check_for_4), f"4 not in gui output")
 
 
         self.assertIn("4", self.gui._output.value, "Expected '4' in response")
