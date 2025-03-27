@@ -131,7 +131,7 @@ class ForthGui(App):
         )
     
     def _toggle_connection(self):
-        """Toggle the connection to the FORTH system."""
+        """Toggle the _connection to the FORTH system."""
         if self._repl._comm_port.is_connected():
             self._repl.stop()
             self._connect_button.text = "Connect"

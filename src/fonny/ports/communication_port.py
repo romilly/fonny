@@ -11,17 +11,17 @@ class CommunicationPort(ABC):
     @abstractmethod
     def connect(self) -> bool:
         """
-        Establish a connection to the FORTH system.
+        Establish a _connection to the FORTH system.
         
         Returns:
-            bool: True if connection was successful, False otherwise
+            bool: True if _connection was successful, False otherwise
         """
         pass
     
     @abstractmethod
     def disconnect(self) -> None:
         """
-        Close the connection to the FORTH system.
+        Close the _connection to the FORTH system.
         """
         pass
     
@@ -39,7 +39,7 @@ class CommunicationPort(ABC):
     @abstractmethod
     def is_connected(self) -> bool:
         """
-        Check if the connection is active.
+        Check if the _connection is active.
         
         Returns:
             bool: True if connected, False otherwise

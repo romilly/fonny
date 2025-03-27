@@ -84,14 +84,14 @@ class ArchivistPort(ABC):
         )
     
     def record_connection_opened(self) -> None:
-        """Record that a connection was opened."""
+        """Record that a _connection was opened."""
         self._record_event(
             EventType.CONNECTION_OPENED,
             {}
         )
     
     def record_connection_closed(self) -> None:
-        """Record that a connection was closed."""
+        """Record that a _connection was closed."""
         self._record_event(
             EventType.CONNECTION_CLOSED,
             {}

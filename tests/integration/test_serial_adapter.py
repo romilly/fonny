@@ -60,7 +60,7 @@ class TestSerialAdapter:
         # Clear any pending output
         adapter.clear_buffer()
         
-        # Wait for the connection to stabilize
+        # Wait for the _connection to stabilize
         time.sleep(0.5)
         
         # Return the adapter and handler for use in tests

@@ -232,11 +232,11 @@ class MockArchivist(ArchivistPort):
         self.record_event(EventType.SYSTEM_ERROR, {"error": error}, datetime.now())
     
     def record_connection_opened(self) -> None:
-        """Record a connection opened event."""
+        """Record a _connection opened event."""
         self.record_event(EventType.CONNECTION_OPENED, {}, datetime.now())
     
     def record_connection_closed(self) -> None:
-        """Record a connection closed event."""
+        """Record a _connection closed event."""
         self.record_event(EventType.CONNECTION_CLOSED, {}, datetime.now())
 
 
@@ -355,7 +355,7 @@ class TestForthRepl:
         assert any(event[0] == EventType.SYSTEM_RESPONSE and event[1]["response"] == "Response 2" for event in mock_archivist.events)
     
     def test_archivists_record_connection_events(self, repl_with_archivist, mock_port, mock_archivist):
-        """Test that archivists record connection events."""
+        """Test that archivists record _connection events."""
         # Arrange
         repl_with_archivist.set_communication_port(mock_port)
         
@@ -364,9 +364,9 @@ class TestForthRepl:
         repl_with_archivist.stop()
         
         # Assert
-        # Check for connection opened event
+        # Check for _connection opened event
         assert any(event[0] == EventType.CONNECTION_OPENED for event in mock_archivist.events)
-        # Check for connection closed event
+        # Check for _connection closed event
         assert any(event[0] == EventType.CONNECTION_CLOSED for event in mock_archivist.events)
     
     def test_archivists_record_errors(self, repl_with_archivist, mock_port_with_error, mock_archivist):
@@ -429,7 +429,7 @@ class TestForthRepl:
         assert mock_archivist.system_responses[0] == "Hello, FORTH!"
     
     def test_archivist_records_connection_events(self, repl_with_archivist, mock_port, mock_archivist):
-        """Test that archivists record connection events."""
+        """Test that archivists record _connection events."""
         # Arrange
         repl_with_archivist.set_communication_port(mock_port)
         
@@ -438,9 +438,9 @@ class TestForthRepl:
         repl_with_archivist.stop()
         
         # Assert
-        # Check for connection opened event
+        # Check for _connection opened event
         assert any(event[0] == EventType.CONNECTION_OPENED for event in mock_archivist.events)
-        # Check for connection closed event
+        # Check for _connection closed event
         assert any(event[0] == EventType.CONNECTION_CLOSED for event in mock_archivist.events)
     
     def test_archivist_records_user_commands(self, connected_repl_with_archivist, mock_archivist):

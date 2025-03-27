@@ -40,7 +40,7 @@ class SerialAdapter(CommunicationPort):
         Connect to the FORTH system via serial port.
         
         Returns:
-            bool: True if connection was successful, False otherwise
+            bool: True if _connection was successful, False otherwise
         """
         try:
             print(f"Attempting to connect to {self._port} at {self._baud_rate} baud")
@@ -69,7 +69,7 @@ class SerialAdapter(CommunicationPort):
                 self._read_thread.join(timeout=1.0)
                 self._read_thread = None
             
-            # Close the serial connection
+            # Close the serial _connection
             self._serial.close()
             self._serial = None
     
@@ -116,7 +116,7 @@ class SerialAdapter(CommunicationPort):
     
     def is_connected(self) -> bool:
         """
-        Check if the connection to the FORTH system is active.
+        Check if the _connection to the FORTH system is active.
         
         Returns:
             bool: True if connected, False otherwise
