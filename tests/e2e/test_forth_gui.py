@@ -17,8 +17,8 @@ with the guizero components.
 import os
 import time
 import unittest
-import sqlite3
-import json
+from time import sleep
+
 import pytest
 
 from fonny.gui.forth_gui import ForthGui
@@ -26,7 +26,7 @@ from fonny.core.repl import ForthRepl
 from fonny.adapters.serial_adapter import SerialAdapter
 from fonny.adapters.sqlite_archivist import SQLiteArchivist
 from fonny.ports.archivist_port import EventType
-from tests.helpers.event_checks import get_events_from_db
+from tests.helpers.database_tests import get_events_from_db, clear_events_table
 from tests.helpers.tk_testing import push, type_in
 
 
@@ -48,19 +48,19 @@ class TestForthGui(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.repl.stop()
         cls.gui.cleanup()
 
 
     def setUp(self):
         self.gui.update()
-        
+
 
     def test_connect_and_send_command(self):
+        # clear_events_table(self.test_db_path)
         """Test connecting to the Pico and sending a simple command."""
         # Connect to the Pico
         push(self.gui._connect_button)
-        # Wait for connection to establish
-        time.sleep(1)
         self.gui.update()
         
         # Verify connection status
@@ -93,19 +93,19 @@ class TestForthGui(unittest.TestCase):
         self.assertIn("ok", self.gui._output.value, "Expected 'ok' in response")
         
         # Verify command was recorded in the database
-        # command_events = self._get_events_from_db(EventType.USER_COMMAND)
-        # self.assertGreaterEqual(len(command_events), 1, "User command event not recorded")
+        command_events = get_events_from_db(self.test_db_path, EventType.USER_COMMAND)
+        self.assertGreaterEqual(len(command_events), 1, "User command event not recorded")
         
         # Check the most recent command event
-        # latest_command = command_events[-1]
+        latest_command = command_events[-1]
         # The command in the database will have a newline appended
-        # expected_command = test_command + "\n"
-        # self.assertEqual(latest_command['data']['command'], expected_command,
-        #                  f"Expected command '{expected_command}' but got '{latest_command['data']['command']}'")
-        #
+        expected_command = test_command + "\n"
+        self.assertEqual(latest_command['data']['command'], expected_command,
+                         f"Expected command '{expected_command}' but got '{latest_command['data']['command']}'")
         # Verify response was recorded in the database
+        sleep(1)
         response_events = get_events_from_db(self.test_db_path, EventType.SYSTEM_RESPONSE)
-        # self.assertGreaterEqual(len(response_events), 1, "System response event not recorded")
+        self.assertGreaterEqual(len(response_events), 1, "System response event not recorded")
 
     @pytest.mark.skip(reason="Experimenting")
     def test_error_handling(self):

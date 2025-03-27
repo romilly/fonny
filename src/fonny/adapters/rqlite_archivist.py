@@ -1,21 +1,21 @@
 import json
-import sqlite3
+import pyrqlite.dbapi2 as rqlite
 from typing import Dict, Any, List
 from datetime import datetime
 
 from fonny.ports.archivist_port import ArchivistPort, EventType
 
 
-class SQLiteArchivist(ArchivistPort):
+class RQLiteArchivist(ArchivistPort):
     """
     SQLite implementation of the ArchivistPort interface.
     Stores events in an SQLite database.
     """
+    
+    def __init__(self, host: str = 'localhost', port: int= 4000):
 
-    def __init__(self, db_path: str):
-        sqlite3.threadsafety = 3
-        self._db_path = db_path
-        self._connection = sqlite3.connect(self._db_path)
+        self._connection = rqlite.connect(host=host, port=port)
+        # This enables column access by name
         self._cursor = self._connection.cursor()
 
         # Create events table if it doesn't exist
@@ -39,27 +39,30 @@ class SQLiteArchivist(ArchivistPort):
         )
         self._connection.commit()
 
-    def get_events_from_db(self, event_type=None) -> List[dict]:
-        connection = sqlite3.connect(self._db_path)
-        connection.row_factory = sqlite3.Row  # This enables column access by name
-        cursor = connection.cursor()
+    def get_events(self, event_type=None) -> List[dict]:
         if event_type:
-            cursor.execute(
+            self._cursor.execute(
                 "SELECT id, event_type, timestamp, data FROM events WHERE event_type = ? ORDER BY id",
                 (event_type.name,)
             )
         else:
-            cursor.execute("SELECT id, event_type, timestamp, data FROM events ORDER BY id")
-        rows = cursor.fetchall()
-        cursor.close()
-        connection.close()
+            self._cursor.execute("SELECT id, event_type, timestamp, data FROM events ORDER BY id")
+        rows = self._cursor.fetchall()
+        keys = 'id,event_type,timestamp,data'.split(',')
         events = []
         for row in rows:
-            event = dict(row)
+            event = {}
+            for (index, key) in enumerate(keys):
+                event[key] = row[index]
             event['data'] = json.loads(event['data'])
             events.append(event)
         return events
 
+    def clear_tables(self) -> None:
+        self._cursor.execute('DELETE FROM events')
+        self._connection.commit()
+
     def close(self) -> None:
-        self._cursor.close()
-        self._connection.close()
+            self._cursor.close()
+            self._connection.close()
+

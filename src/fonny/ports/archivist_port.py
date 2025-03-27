@@ -96,3 +96,7 @@ class ArchivistPort(ABC):
             EventType.CONNECTION_CLOSED,
             {}
         )
+
+    @abstractmethod
+    def close(self) -> None:
+        pass

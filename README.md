@@ -107,3 +107,5 @@ The `tests/helpers` directory contains utilities to assist with testing:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Acknowledgements: thanks to Simon Brown for pointing me at c4 and [structurizr lite](https://github.com/structurizr/lite)!
