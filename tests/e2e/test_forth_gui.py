@@ -75,22 +75,21 @@ class TestForthGui(unittest.TestCase):
         type_in(self.gui._command_input, test_command)
         push(self.gui._send_button)
 
-        def check_for_4():
+        def check_output_value(text: str):
             self.gui.update()
-            return '4' in self.gui._output.value
+            return text in self.gui._output.value
 
         # Verify that we got the expected response (4 ok)
-        def wait_until(condition: callable, timeout = 0.5, delay = 0.1) -> bool:
+        def wait_until(condition: callable, args = None, timeout = 0.5, delay = 0.1) -> bool:
+            args = args or []
             time_end = time.time() + timeout
             while time.time() < time_end:
-                if condition():
+                if condition(*args):
                     return True
             time.sleep(delay)
             return False
-        self.assertTrue(wait_until(check_for_4), f"4 not in gui output")
 
-
-        self.assertIn("4", self.gui._output.value, "Expected '4' in response")
+        self.assertTrue(wait_until(check_output_value, ['4']), f"4 not in gui output")
         self.assertIn("ok", self.gui._output.value, "Expected 'ok' in response")
         
         # Verify command was recorded in the database
