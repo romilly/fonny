@@ -35,8 +35,7 @@ The project is currently in active development with the following components imp
 
 ## Getting Started
 
-The project now uses rqlite instead of sqlite. rqlite needs to be installed
-and two demons need to be started. Project setup details coming Real Soon Now(tm).
+The project now uses rqlite instead of sqlite.
 
 ### Prerequisites
 
@@ -48,7 +47,10 @@ and two demons need to be started. Project setup details coming Real Soon Now(tm
 
 ### Installation
 
-1. Clone the repository
+1. [Install rqlite](https://rqlite.io/docs/quick-start/)
+2. Start an rqlite daemon on port 4001 for the production database
+2. If you plan to run tests, start an rqlite daemon on port 4003 for the test database
+2. Clone the repository
 2. Create and activate a virtual environment:
    ```
    python -m venv venv

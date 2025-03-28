@@ -38,7 +38,7 @@ class TestForthGui(unittest.TestCase):
     def setUpClass(cls):
         # Create a test database path
 
-        cls.archivist = RQLiteArchivist(port=4001)
+        cls.archivist = RQLiteArchivist(port=4003)
         cls.repl = ForthRepl(cls.archivist)
         cls.serial_adapter = SerialAdapter(character_handler=cls.repl)
         cls.repl.set_communication_port(cls.serial_adapter)
