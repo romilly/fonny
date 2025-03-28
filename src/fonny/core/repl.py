@@ -5,6 +5,9 @@ from fonny.ports.archivist_port import ArchivistPort
 from fonny.adapters.null_adapter import NullCommunicationAdapter
 from fonny.ports.character_handler_port import CharacterHandlerPort
 
+def is_ok(char):
+    # skip ascii colour control chars
+    return char in "\n\r" or ord(char) > 31
 
 class ForthRepl(CharacterHandlerPort):
     """
@@ -28,7 +31,8 @@ class ForthRepl(CharacterHandlerPort):
         self._comm_port = communication_port
     
     def handle_character(self, char: str) -> None:
-        self.character_queue.put(char)
+        if is_ok(char):
+            self.character_queue.put(char)
         # If we have a complete line (newline or carriage return), process it
         if char == '\n' or char == '\r':
             if self._current_response:  # Only process if we have content

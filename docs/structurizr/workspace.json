@@ -1,0 +1,183 @@
+{
+  "configuration" : {
+    "scope" : "SoftwareSystem"
+  },
+  "description" : "Description",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedAgent" : "structurizr-ui",
+  "lastModifiedDate" : "2025-03-27T13:51:04Z",
+  "model" : {
+    "people" : [ {
+      "id" : "1",
+      "location" : "Unspecified",
+      "name" : "User",
+      "properties" : {
+        "structurizr.dsl.identifier" : "u"
+      },
+      "relationships" : [ {
+        "description" : "Uses",
+        "destinationId" : "3",
+        "id" : "6",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      }, {
+        "description" : "Uses",
+        "destinationId" : "2",
+        "id" : "7",
+        "linkedRelationshipId" : "6",
+        "sourceId" : "1"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "containers" : [ {
+        "documentation" : { },
+        "id" : "3",
+        "name" : "fonny GUI",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ss.wa"
+        },
+        "relationships" : [ {
+          "description" : "drives",
+          "destinationId" : "5",
+          "id" : "8",
+          "sourceId" : "3",
+          "tags" : "Relationship"
+        }, {
+          "description" : "Reads from and writes to",
+          "destinationId" : "4",
+          "id" : "9",
+          "sourceId" : "3",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container"
+      }, {
+        "documentation" : { },
+        "id" : "4",
+        "name" : "Database Schema",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ss.db"
+        },
+        "tags" : "Element,Container,Database"
+      }, {
+        "documentation" : { },
+        "id" : "5",
+        "name" : "Raspberry Pi Pico",
+        "properties" : {
+          "structurizr.dsl.identifier" : "ss.pico"
+        },
+        "tags" : "Element,Container"
+      } ],
+      "documentation" : { },
+      "id" : "2",
+      "location" : "Unspecified",
+      "name" : "fonny",
+      "properties" : {
+        "structurizr.dsl.identifier" : "ss"
+      },
+      "tags" : "Element,Software System"
+    } ]
+  },
+  "name" : "Name",
+  "properties" : {
+    "structurizr.dsl" : "d29ya3NwYWNlICJOYW1lIiAiRGVzY3JpcHRpb24iIHsKCiAgICAhaWRlbnRpZmllcnMgaGllcmFyY2hpY2FsCgogICAgbW9kZWwgewogICAgICAgIHUgPSBwZXJzb24gIlVzZXIiCiAgICAgICAgc3MgPSBzb2Z0d2FyZVN5c3RlbSAiZm9ubnkiIHsKICAgICAgICAgICAgd2EgPSBjb250YWluZXIgImZvbm55IEdVSSIKICAgICAgICAgICAgZGIgPSBjb250YWluZXIgIkRhdGFiYXNlIFNjaGVtYSIgewogICAgICAgICAgICAgICAgdGFncyAiRGF0YWJhc2UiCiAgICAgICAgICAgIH0KICAgICAgICAgICAgcGljbyA9IGNvbnRhaW5lciAiUmFzcGJlcnJ5IFBpIFBpY28iCiAgICAgICAgfQogICAgICAgIHUgLT4gc3Mud2EgIlVzZXMiCiAgICAgICAgc3Mud2EgLT4gc3MucGljbyAiZHJpdmVzIgogICAgICAgIHNzLndhIC0+IHNzLmRiICJSZWFkcyBmcm9tIGFuZCB3cml0ZXMgdG8iCiAgICB9CgogICAgdmlld3MgewogICAgICAgIHN5c3RlbUNvbnRleHQgc3MgIkRpYWdyYW0xIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICAgICAgfQoKICAgICAgICBjb250YWluZXIgc3MgIkRpYWdyYW0yIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBhdXRvbGF5b3V0IGxyCiAgICAgICAgfQoKICAgICAgICBzdHlsZXMgewogICAgICAgICAgICBlbGVtZW50ICJFbGVtZW50IiB7CiAgICAgICAgICAgICAgICBjb2xvciAjZmZmZmZmCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiUGVyc29uIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICM5YjE5MWYKICAgICAgICAgICAgICAgIHNoYXBlIHBlcnNvbgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIlNvZnR3YXJlIFN5c3RlbSIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAjYmExZTI1CiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiQ29udGFpbmVyIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICNkOTIzMmIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJEYXRhYmFzZSIgewogICAgICAgICAgICAgICAgc2hhcGUgY3lsaW5kZXIKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KCiAgICBjb25maWd1cmF0aW9uIHsKICAgICAgICBzY29wZSBzb2Z0d2FyZXN5c3RlbQogICAgfQoKfQ=="
+  },
+  "views" : {
+    "configuration" : {
+      "branding" : { },
+      "lastSavedView" : "Diagram2",
+      "metadataSymbols" : "SquareBrackets",
+      "styles" : {
+        "elements" : [ {
+          "color" : "#ffffff",
+          "tag" : "Element"
+        }, {
+          "background" : "#9b191f",
+          "shape" : "Person",
+          "tag" : "Person"
+        }, {
+          "background" : "#ba1e25",
+          "tag" : "Software System"
+        }, {
+          "background" : "#d9232b",
+          "tag" : "Container"
+        }, {
+          "shape" : "Cylinder",
+          "tag" : "Database"
+        } ]
+      },
+      "terminology" : { }
+    },
+    "containerViews" : [ {
+      "automaticLayout" : {
+        "applied" : true,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "dimensions" : {
+        "height" : 1411,
+        "width" : 2320
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 200,
+        "y" : 435
+      }, {
+        "id" : "3",
+        "x" : 900,
+        "y" : 485
+      }, {
+        "id" : "4",
+        "x" : 1650,
+        "y" : 785
+      }, {
+        "id" : "5",
+        "x" : 1650,
+        "y" : 185
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "Diagram2",
+      "order" : 2,
+      "relationships" : [ {
+        "id" : "6"
+      }, {
+        "id" : "8"
+      }, {
+        "id" : "9"
+      } ],
+      "softwareSystemId" : "2"
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "applied" : false,
+        "edgeSeparation" : 0,
+        "implementation" : "Graphviz",
+        "nodeSeparation" : 300,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 300,
+        "vertices" : false
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "Diagram1",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "7"
+      } ],
+      "softwareSystemId" : "2"
+    } ]
+  }
+}

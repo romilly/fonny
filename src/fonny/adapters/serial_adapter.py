@@ -33,35 +33,22 @@ class SerialAdapter(CommunicationPort):
         self._character_handler = character_handler
         self._stop_reading = threading.Event()
         self._read_thread = None
-        self._serial =None
+        self._serial = None
 
     def connect(self) -> bool:
-        """
-        Connect to the FORTH system via serial port.
-        
-        Returns:
-            bool: True if _connection was successful, False otherwise
-        """
         try:
-            print(f"Attempting to connect to {self._port} at {self._baud_rate} baud")
             self._serial = serial.Serial(
                 port=self._port,
                 baudrate=self._baud_rate,
                 timeout=self._timeout
             )
-            
-            # Start the reading thread if we have a character handler
             self._start_reading_thread()
-                
             return True
         except SerialException as e:
-            print(f"Connection failed: {e}")
+            print(f"Connection to {self._port} failed: {e}")
             return False
     
     def disconnect(self) -> None:
-        """
-        Disconnect from the FORTH system.
-        """
         if self.is_connected():
             # Stop the reading thread
             self._stop_reading.set()
@@ -87,7 +74,7 @@ class SerialAdapter(CommunicationPort):
         Read characters from the serial port and put them into the queue.
         This method runs in a background thread.
         """
-        while not self._stop_reading.is_set() and self.is_connected():
+        while self._serial and not self._stop_reading.is_set() and self.is_connected():
             try:
                 if self._serial.in_waiting > 0:
                     raw_data = self._serial.read(1)
@@ -109,34 +96,15 @@ class SerialAdapter(CommunicationPort):
         """
         if not self.is_connected():
             raise ConnectionError("Not connected to FORTH system")
-        
-        print(f"Sending command: {repr(command)}")
         self._serial.write(command.encode())
-        print(f"Command sent: {repr(command)}")
-    
+
     def is_connected(self) -> bool:
-        """
-        Check if the _connection to the FORTH system is active.
-        
-        Returns:
-            bool: True if connected, False otherwise
-        """
         return self._serial is not None and self._serial.is_open
         
     def clear_buffer(self) -> None:
-        """
-        Clear any data in the serial buffer.
-        
-        This is useful to ensure we're starting with a clean state
-        before sending a new command.
-        """
         if not self.is_connected():
-            raise ConnectionError("Not connected to FORTH system")
-            
-        print("Clearing serial buffer")
+           return
         while self._serial.in_waiting > 0:
-            # Read and discard all available data
-            discarded = self._serial.read(self._serial.in_waiting)
-            time.sleep(0.1)  # Short delay to allow more data to arrive if needed
-        print("Serial buffer cleared")
+            self._serial.read(self._serial.in_waiting)
+            time.sleep(0.01)  # Short delay to allow more data to arrive if needed
 

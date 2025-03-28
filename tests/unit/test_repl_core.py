@@ -178,24 +178,6 @@ class MockCommunicationPortWithCharacterHandler(CommunicationPort):
                 if self._character_handler:
                     self._character_handler.handle_character(char)
     
-    def receive_response(self) -> Optional[str]:
-        """
-        Mock implementation of receive_response.
-        
-        This method is maintained for backward compatibility.
-        When using a character handler, responses are processed
-        character by character in real-time.
-        """
-        if not self.connected:
-            raise ConnectionError("Not connected")
-        
-        if self.response_index < len(self.responses):
-            response = self.responses[self.response_index]
-            self.response_index += 1
-            return response
-        
-        return None
-    
     def is_connected(self) -> bool:
         """Mock implementation of is_connected."""
         return self.connected
@@ -209,35 +191,38 @@ class MockArchivist(ArchivistPort):
     """
     Mock implementation of the ArchivistPort interface for testing.
     """
-    
+
     def __init__(self):
         self.events = []
         self.system_responses = []
-    
+
     def record_event(self, event_type: EventType, data: dict, timestamp: datetime) -> None:
         """Record an event by storing it in a list."""
         self.events.append((event_type, data, timestamp))
-        
+
     def record_user_command(self, command: str) -> None:
         """Record a user command."""
         self.record_event(EventType.USER_COMMAND, {"command": command}, datetime.now())
-    
+
     def record_system_response(self, response: str) -> None:
         """Record a system response."""
         self.system_responses.append(response)
         self.record_event(EventType.SYSTEM_RESPONSE, {"response": response}, datetime.now())
-    
+
     def record_system_error(self, error: str) -> None:
         """Record a system error."""
         self.record_event(EventType.SYSTEM_ERROR, {"error": error}, datetime.now())
-    
+
     def record_connection_opened(self) -> None:
         """Record a _connection opened event."""
         self.record_event(EventType.CONNECTION_OPENED, {}, datetime.now())
-    
+
     def record_connection_closed(self) -> None:
         """Record a _connection closed event."""
         self.record_event(EventType.CONNECTION_CLOSED, {}, datetime.now())
+
+    def close(self) -> None:
+        pass
 
 
 class TestForthRepl:

@@ -18,7 +18,6 @@ def archivist():
 
 class TestRQLiteArchivist:
     """Tests for the SQLiteArchivist class."""
-
     
     def test_record_user_command(self, archivist):
         """Test that record_user_command stores the command in the database."""
@@ -29,58 +28,33 @@ class TestRQLiteArchivist:
         assert_that(event["command"], equal_to("test command"))
 
 
+    def test_record_system_response(self, archivist):
+        """Test that record_system_response stores the response in the database."""
+        archivist.record_system_response("system response")
+        events = archivist.get_events()
+        assert_that(len(events), equal_to(1))
+        event = events[0]
+        assert_that(event['event_type'], equal_to(EventType.SYSTEM_RESPONSE.name))
+        assert_that(event['data']["response"], equal_to("system response"))
 
+    def test_record_system_error(self, archivist):
+        """Test that record_system_error stores the error in the database."""
+        archivist.record_system_error("ouch!")
+        events = archivist.get_events()
+        assert_that(len(events), equal_to(1))
+        event = events[0]
+        assert_that(event['event_type'], equal_to(EventType.SYSTEM_ERROR.name))
+        assert_that(event['data']["error"], equal_to("ouch!"))
 
+    def test_record_connection_events(self, archivist):
+        """Test that record_connection_opened and record_connection_closed store events in the database."""
+        archivist.record_connection_opened()
+        archivist.record_connection_closed()
+        events = archivist.get_events()
+        assert_that(len(events), equal_to(2))
+        assert_that(events[0]['event_type'], equal_to(EventType.CONNECTION_OPENED.name))
+        assert_that(events[1]['event_type'], equal_to(EventType.CONNECTION_CLOSED.name))
 
-    # def test_record_system_response(self, archivist):
-    #     """Test that record_system_response stores the response in the database."""
-    #     archivist.record_system_response("test response")
-    #     events = archivist.get_events()
-    #     event = events[0]
-    #     assert_that(event['event_type'], equal_to(EventType.SYSTEM_RESPONSE.name))
-    #     assert_that(event['data']["response"], equal_to("test response"))
-
-    # def test_record_system_error(self, db_path):
-    #     """Test that record_system_error stores the error in the database."""
-    #     # Arrange
-    #     archivist = SQLiteArchivist(db_path)
-    #
-    #     # Act
-    #     archivist.record_system_error("test error")
-    #
-    #     # Assert
-    #     conn = sqlite3.connect(db_path)
-    #     cursor = conn.cursor()
-    #     cursor.execute("SELECT event_type, data FROM events")
-    #     rows = cursor.fetchall()
-    #     conn.close()
-    #
-    #     assert len(rows) == 1
-    #     event_type, data_json = rows[0]
-    #     assert event_type == EventType.SYSTEM_ERROR.name
-    #     data = json.loads(data_json)
-    #     assert data["error"] == "test error"
-    #
-    # def test_record_connection_events(self, db_path):
-    #     """Test that record_connection_opened and record_connection_closed store events in the database."""
-    #     # Arrange
-    #     archivist = SQLiteArchivist(db_path)
-    #
-    #     # Act
-    #     archivist.record_connection_opened()
-    #     archivist.record_connection_closed()
-    #
-    #     # Assert
-    #     conn = sqlite3.connect(db_path)
-    #     cursor = conn.cursor()
-    #     cursor.execute("SELECT event_type FROM events ORDER BY id")
-    #     rows = cursor.fetchall()
-    #     conn.close()
-    #
-    #     assert len(rows) == 2
-    #     assert rows[0][0] == EventType.CONNECTION_OPENED.name
-    #     assert rows[1][0] == EventType.CONNECTION_CLOSED.name
-    #
     # def test_timestamp_is_stored(self, db_path):
     #     """Test that the timestamp is stored in the database."""
     #     # Arrange

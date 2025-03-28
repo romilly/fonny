@@ -6,13 +6,16 @@ from fonny.ports.archivist_port import ArchivistPort, EventType
 
 class MockArchivist(ArchivistPort):
     """Mock implementation of ArchivistPort for testing."""
-    
+
     def __init__(self):
         self.events = []
-    
+
     def record_event(self, event_type: EventType, data: Dict[str, Any], timestamp: datetime) -> None:
         """Record an event by storing it in a list."""
         self.events.append((event_type, data, timestamp))
+
+    def close(self) -> None:
+        pass
 
 
 class TestArchivistPort:

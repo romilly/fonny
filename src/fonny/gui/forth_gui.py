@@ -3,6 +3,10 @@ from fonny.core.repl import ForthRepl
 from queue import Empty
 
 
+def is_ok(char):
+    # skip ascii colour control chars
+    return char in "\n\r" or ord(char) > 31
+
 
 class ForthGui(App):
     """
@@ -50,15 +54,16 @@ class ForthGui(App):
         while self._repl.character_queue.qsize() > 0:
             try:
                 char = self._repl.character_queue.get_nowait()
-                
+                if is_ok(char):
                 # Add the character to our buffer
-                self._char_buffer += char
-                self.update()
-                
+                    self._char_buffer += char
+                    self.update()
+                print("char:", char, ord(char))
                 # If we have a newline or carriage return, update the display
                 if char == '\n' or char == '\r':
                     if self._char_buffer.strip():  # Only append non-empty lines
                         # Use the same approach as append_to_output
+                        print("char buffer", self._char_buffer)
                         self._output.value += self._char_buffer
                         # Scroll to the bottom
                         self._output.tk.see("end")
@@ -67,21 +72,6 @@ class ForthGui(App):
                 self._repl.character_queue.task_done()
             except Empty:
                 break  # No more items in queue
-    
-    # def _create_console_archivist(self):
-    #     """Create an archivist that updates the GUI with responses."""
-        
-    #     class ConsoleArchivist(ArchivistPort):
-    #         def __init__(self, gui):
-    #             self._gui = gui
-                
-    #         def record_event(self, event_type, data, timestamp):
-    #             if event_type == EventType.SYSTEM_RESPONSE and "response" in data:
-    #                 self._gui.append_to_output(data["response"])
-    #             elif event_type == EventType.SYSTEM_ERROR and "error" in data:
-    #                 self._gui.append_to_output(f"Error: {data['error']}")
-        
-    #     return ConsoleArchivist(self)
     
     def _create_gui_components(self):
         """Create the GUI components."""
@@ -175,12 +165,14 @@ class ForthGui(App):
         self._output.value += text + "\n"
         # Scroll to the bottom
         self._output.tk.see("end")
+
+    def clear_output(self):
+        self._output.value = ""
     
     def cleanup(self):
         """Clean up resources when the application is closed."""
         if self._repl._comm_port.is_connected():
             self._repl.stop()
-        print("Application closed. Goodbye!")
         self.destroy()  # Properly close the application window
 
 
