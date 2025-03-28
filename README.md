@@ -35,12 +35,16 @@ The project is currently in active development with the following components imp
 
 ## Getting Started
 
+The project now uses rqlite instead of sqlite. rqlite needs to be installed
+and two demons need to be started. Project setup details coming Real Soon Now(tm).
+
 ### Prerequisites
 
 - Python 3.10 or higher
 - A virtual environment (recommended)
 - A Raspberry Pi Pico running FORTH (for actual usage)
 - guizero package for the GUI
+- rqlite 
 
 ### Installation
 
