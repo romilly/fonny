@@ -1,7 +1,4 @@
 import pytest
-import time
-import threading
-from queue import Queue
 
 from hamcrest import assert_that
 

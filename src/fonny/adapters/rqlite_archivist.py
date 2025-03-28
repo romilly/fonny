@@ -12,7 +12,7 @@ class RQLiteArchivist(ArchivistPort):
     Stores events in an SQLite database.
     """
     
-    def __init__(self, host: str = 'localhost', port: int= 4000):
+    def __init__(self, host: str = 'localhost', port: int=4003):
 
         self._connection = rqlite.connect(host=host, port=port)
         # This enables column access by name

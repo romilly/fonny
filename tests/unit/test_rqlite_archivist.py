@@ -10,7 +10,7 @@ from fonny.ports.archivist_port import EventType
 
 @pytest.fixture
 def archivist():
-    archivist = RQLiteArchivist(port=4001)
+    archivist = RQLiteArchivist(port=4003)
     archivist.clear_tables()
     yield archivist
     archivist.close()
@@ -54,29 +54,3 @@ class TestRQLiteArchivist:
         assert_that(len(events), equal_to(2))
         assert_that(events[0]['event_type'], equal_to(EventType.CONNECTION_OPENED.name))
         assert_that(events[1]['event_type'], equal_to(EventType.CONNECTION_CLOSED.name))
-
-    # def test_timestamp_is_stored(self, db_path):
-    #     """Test that the timestamp is stored in the database."""
-    #     # Arrange
-    #     archivist = SQLiteArchivist(db_path)
-    #
-    #     # Act
-    #     archivist.record_user_command("test command")
-    #
-    #     # Assert
-    #     conn = sqlite3.connect(db_path)
-    #     cursor = conn.cursor()
-    #     cursor.execute("SELECT timestamp FROM events")
-    #     rows = cursor.fetchall()
-    #     conn.close()
-    #
-    #     assert len(rows) == 1
-    #     timestamp_str = rows[0][0]
-    #     # Verify that the timestamp is in ISO format
-    #     try:
-    #         datetime.fromisoformat(timestamp_str)
-    #         valid_timestamp = True
-    #     except ValueError:
-    #         valid_timestamp = False
-    #
-    #     assert valid_timestamp

@@ -71,11 +71,12 @@ class TestForthGui(unittest.TestCase):
         push(self.gui._send_button)
 
         def check_output_value(text: str):
+            # print(text)
             self.gui.update()
             value = self.gui._output.value
             return text in value
 
-        self.assertTrue(wait_until(check_output_value, ['4']), f"4 not in gui output")
+        self.assertTrue(wait_until(check_output_value, text='4'), f"4 not in gui output")
         self.assertIn("ok", self.gui._output.value, "Expected 'ok' in response")
         command_events = self.archivist.get_events(EventType.USER_COMMAND)
         self.assertGreaterEqual(len(command_events), 1, "User command event not recorded")
