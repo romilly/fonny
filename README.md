@@ -2,6 +2,8 @@
 
 Fonny is a FORTH-oriented tool inspired by Thonny, designed to interact with a running FORTH on a Raspberry Pi Pico.
 
+The project is usable but in alpha state; anything and everything may change.
+
 ## Project Goals
 
 The primary goals of Fonny are:
